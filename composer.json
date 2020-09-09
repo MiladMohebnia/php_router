@@ -1,0 +1,16 @@
+{
+  "name": "miladm/router",
+  "license": "library",
+  "authors": [
+    {
+      "name": "MiladM",
+      "email": "miladmohebnia@gmail.com"
+    }
+  ],
+  "require": {},
+  "autoload": {
+    "psr-4": {
+      "miladm\\": "src/"
+    }
+  }
+}

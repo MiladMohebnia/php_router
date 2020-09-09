@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "type": "php",
+            "runtimeExecutable": "/usr/bin/php",
+            "request": "launch",
+            "name": "Run using local PHP Interpreter",
+            "program": "${workspaceFolder}/index.php",
+            "cwd": "${workspaceFolder}",
+        }
+    ]
+}
