@@ -10,7 +10,7 @@ class Faker
     function __construct($URI)
     {
         if ($this->checkIfCLI()) {
-            if ($URI[0] != "/") {
+            if (($URI[0] ?? "") != "/") {
                 $URI = '/' . $URI;
             }
             $_SERVER['REQUEST_URI'] = $URI;
