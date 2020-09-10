@@ -1,6 +1,7 @@
 <?php
 
-use miladm\router\exceptions\RequestException;
+use miladm\Faker;
+use miladm\Route;
 use miladm\router\Request;
 
 define('DEVMODE', true);
@@ -8,38 +9,38 @@ define('DEVMODE', true);
 include "vendor/autoload.php";
 
 
-$faker = new \miladm\faker\Faker("/home/123/home1111");
-$faker->post([
+Faker::post("home/123/home111", [
     "auth" => 'admin',
 ]);
+
 $r = new \miladm\router\Router();
 
-$r->globalMiddleware_add(function ($request) {
-    $request->method .= "a";
+
+$r->post('home/123/home1111', function ($request) {
     return $request;
-});
-$r->globalMiddleware_add(function ($request) {
-    $request->method .= "b";
+})->use(function (Request $request) {
+    $request->method .= "x";
     return $request;
 });
 
 $r->any('home/:id(number)/:home', function ($request) {
-    return (object)['a', 'b', 'c'];
-    return 'hello world!';
-})->use(function (Request $request) {
-    $request->method .= "x";
     return $request;
-});
-
-$r->post('home/123/home1111', function ($request) {
-    return (object)['a'];
-    return 'hello world!';
 })->use(function (Request $request) {
     $request->method .= "x";
     return $request;
 });
 
 
+
+// $r->globalMiddleware_add(function ($request) {
+//     $request->method .= "a";
+//     return $request;
+// });
+
+// $r->globalMiddleware_add(function ($request) {
+//     $request->method .= "b";
+//     return $request;
+// });
 
 // $r->globalInterceptor_add(function ($request, $next) {
 //     var_dump($request->method);

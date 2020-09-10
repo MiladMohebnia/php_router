@@ -18,6 +18,7 @@ class Request
     public $session  = null;
     public $cookie   = null;
     public $attachment = [];
+    public $hashMatch = false;
 
     function __construct()
     {
@@ -32,8 +33,12 @@ class Request
 
     public function checkIfMatch($route)
     {
+        if ($this->hashMatch) {
+            return false;
+        }
         $route = $this->routeToRegex($route);
         if ($this->checkIfHashMatch($route)) {
+            $this->hashMatch = true;
             return true;
         }
         if ($this->checkIfRegexMatchAndParseInputParams($route)) {
