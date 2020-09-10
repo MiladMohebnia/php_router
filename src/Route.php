@@ -38,6 +38,12 @@ class Route
         return $router->globalInterceptor_add($callback);
     }
 
+    public static function run()
+    {
+        $router = self::router();
+        return $router->run();
+    }
+
     private static function router(): Router
     {
         if (self::$router === null) {

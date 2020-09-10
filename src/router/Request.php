@@ -17,7 +17,7 @@ class Request
     public $param    = null;
     public $session  = null;
     public $cookie   = null;
-    public $attachment = [];
+    public $attachment = null;
     public $hashMatch = false;
 
     function __construct()
@@ -54,7 +54,9 @@ class Request
 
     public function attach(array $data): Request
     {
-        $this->attachment += $data;
+        $attachment = (array) $this->attachment;
+        $attachment += $data;
+        $this->attachment = (object) $attachment;
         return $this;
     }
 
@@ -103,6 +105,9 @@ class Request
 
     private function getSessionAndCookie()
     {
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
         if (isset($_SESSION)) {
             $this->session = count($_SESSION) ? (object)$_SESSION : null;
         }
