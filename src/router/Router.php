@@ -54,11 +54,6 @@ class Router
 
     private function register($route, $callback)
     {
-        if ($this->callback !== null) {
-            if (!$this->request->checkIfHashMatch($route)) {
-                return;
-            }
-        }
         $this->skip = false;
         $this->callback = $callback;
     }
@@ -92,6 +87,11 @@ class Router
         return $this->middleware_add($callable);
     }
 
+    public function middleware($callable)
+    {
+        return $this->middleware_add($callable);
+    }
+
     public function middleware_add($callable)
     {
         if ($this->skip) {
@@ -115,6 +115,11 @@ class Router
     public function globalInterceptor_add($callable)
     {
         $this->globalInterceptorList[] = $callable;
+    }
+
+    public function interceptor($callable)
+    {
+        return $this->interceptor_add($callable);
     }
 
     public function interceptor_add($callable)
