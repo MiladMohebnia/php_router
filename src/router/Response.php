@@ -26,7 +26,7 @@ class Response
             ob_clean();
         }
         if (headers_sent($file, $line)) {
-            trigger_error("remove the output data from file '$file' line '$line'");
+            trigger_error("remove the output data from file '$file:$line' line '$line'");
             die;
         }
         header('Content-Type: application/json');
