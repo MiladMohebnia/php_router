@@ -1,6 +1,7 @@
 {
   "name": "miladm/router",
   "license": "library",
+  "version": "2.1.0",
   "authors": [
     {
       "name": "MiladM",
