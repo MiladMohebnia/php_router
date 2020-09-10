@@ -42,6 +42,11 @@ class Request
         return false;
     }
 
+    public function checkIfHashMatch($route)
+    {
+        return $this->requestHash == md5($route);
+    }
+
     public function attach(array $data): Request
     {
         $this->attachment += $data;
@@ -136,11 +141,6 @@ class Request
         // replace all slashes
         $route =  str_replace("/", "\/", $route);
         return $route;
-    }
-
-    private function checkIfHashMatch($route)
-    {
-        return $this->requestHash == md5($route);
     }
 
     private function checkIfRegexMatchAndParseInputParams($route)

@@ -9,7 +9,7 @@ include "vendor/autoload.php";
 
 
 $faker = new \miladm\faker\Faker("/home/123/home1111");
-$faker->get([
+$faker->post([
     "auth" => 'admin',
 ]);
 $r = new \miladm\router\Router();
@@ -23,22 +23,22 @@ $r->globalMiddleware_add(function ($request) {
     return $request;
 });
 
-$r->get('home/:isdaf', function ($request) {
-    return 'bye world!';
-})->use(function ($request) {
-    $request->method = "GET_SOME";
-    return $request;
-});
-
-
-
-$r->get('home/:id(number)/:home', function ($request) {
+$r->any('home/:id(number)/:home', function ($request) {
     return (object)['a', 'b', 'c'];
     return 'hello world!';
 })->use(function (Request $request) {
     $request->method .= "x";
     return $request;
 });
+
+$r->post('home/123/home1111', function ($request) {
+    return (object)['a'];
+    return 'hello world!';
+})->use(function (Request $request) {
+    $request->method .= "x";
+    return $request;
+});
+
 
 
 // $r->globalInterceptor_add(function ($request, $next) {

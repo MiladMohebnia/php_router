@@ -27,12 +27,38 @@ class Router
         if (!$this->request->checkIfMatch($route)) {
             return $this->skip();
         }
-        $this->register($callback);
+        $this->register($route, $callback);
         return $this;
     }
 
-    private function register($callback)
+    public function post($route, $callback)
     {
+        if ($this->request->method !== 'POST') {
+            return $this->skip();
+        }
+        if (!$this->request->checkIfMatch($route)) {
+            return $this->skip();
+        }
+        $this->register($route, $callback);
+        return $this;
+    }
+
+    public function any($route, $callback)
+    {
+        if (!$this->request->checkIfMatch($route)) {
+            return $this->skip();
+        }
+        $this->register($route, $callback);
+        return $this;
+    }
+
+    private function register($route, $callback)
+    {
+        if ($this->callback !== null) {
+            if (!$this->request->checkIfHashMatch($route)) {
+                return;
+            }
+        }
         $this->skip = false;
         $this->callback = $callback;
     }
@@ -41,10 +67,15 @@ class Router
     {
         try {
             $this->middleware_run();
+            if (!$this->callback) {
+
+                // here we must have http error 404 not found
+                trigger_error('no route match!');
+                die;
+            }
             $callback = $this->callback;
             $response = $this->interceptor_run($callback);
             Response::send($response);
-            // $response = $callback($this->request);
         } catch (RequestException $e) {
             trigger_error($e, E_USER_ERROR);
             die; // tempoprary before filters added
