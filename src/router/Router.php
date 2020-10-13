@@ -130,7 +130,9 @@ class Router
     public function run()
     {
         try {
-            $this->middleware_run();
+            if (($result = $this->middleware_run()) !== null) {
+                Response::send($result);
+            };
             if (!$this->callback) {
 
                 // here we must have http error 404 not found
@@ -177,8 +179,11 @@ class Router
             $result = $middleware($this->request);
             if ($result instanceof Request) {
                 $this->request = $result;
+            } else {
+                return $result;
             }
         }
+        return null;
     }
 
     public function globalInterceptor_add($callable)
