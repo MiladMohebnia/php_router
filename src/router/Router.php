@@ -79,7 +79,6 @@ class Router
                         }
                     }
                     return false;
-                    // trigger_error('bad router configuration');
                 } else {
                     trigger_error('bad router configuration');
                 }
