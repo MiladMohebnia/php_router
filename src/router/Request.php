@@ -52,9 +52,6 @@ class Request
         if ($this->checkIfMatch($route)) {
             return true;
         }
-        // if (in_array($route, ['', '/'])) {
-        //     return false;
-        // }
         if ($route[strlen($route) - 1] != '/') {
             $route .= '/';
         }
