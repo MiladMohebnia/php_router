@@ -47,6 +47,21 @@ class Request
         return false;
     }
 
+    public function checkIfMatch_alias($route)
+    {
+        if ($this->checkIfMatch($route)) {
+            return true;
+        }
+        // if (in_array($route, ['', '/'])) {
+        //     return false;
+        // }
+        if ($route[strlen($route) - 1] != '/') {
+            $route .= '/';
+        }
+        $route .= '.*';
+        return $this->checkIfMatch($route);
+    }
+
     public function checkIfHashMatch($route)
     {
         return $this->requestHash == md5($route);

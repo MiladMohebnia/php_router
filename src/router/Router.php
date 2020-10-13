@@ -4,6 +4,8 @@ namespace miladm\router;
 
 use miladm\router\exceptions\RequestException;
 
+use function PHPSTORM_META\type;
+
 class Router
 {
     private $request;
@@ -52,10 +54,78 @@ class Router
         return $this;
     }
 
+    public function alias($route, $callback)
+    {
+        if ($this->callback) {
+            return $this->skip();
+        }
+        if (!$this->request->checkIfMatch_alias($route)) {
+            return $this->skip();
+        }
+        $this->register($route, $callback);
+        return $this;
+    }
+
     private function register($route, $callback)
     {
         $this->skip = false;
+        if (is_string($callback)) {
+            if (!is_callable($callback)) {
+                if (class_exists($callback)) {
+                    $targetMethodList = $this->generatePossibleMethodNameList($route, $callback);
+                    foreach ($targetMethodList as $callback) {
+                        if (is_callable($callback)) {
+                            return $this->callback = $callback;
+                        }
+                    }
+                    return false;
+                    // trigger_error('bad router configuration');
+                } else {
+                    trigger_error('bad router configuration');
+                }
+            }
+        }
         $this->callback = $callback;
+    }
+
+    private function generatePossibleMethodNameList($route, $className)
+    {
+        $targetMethod = $this->convertToMethodName($this->request->path);
+        $convertedRoute = $this->convertToMethodName($route);
+        if (strlen($targetMethod) > 0) {
+            $aliasMethod = "";
+        }
+        if ($convertedRoute !== '') {
+            $routePositionInTargetMethod = strpos($targetMethod, $this->convertToMethodName($route));
+            if ($routePositionInTargetMethod >= 0) {
+                $aliasMethod = substr($targetMethod, strlen($convertedRoute) + 1);
+            }
+        }
+        $targetList = [
+            $className . "::" . $targetMethod . "_" . $this->request->method,
+            $className . "::" . $targetMethod . "_" . strtolower($this->request->method),
+        ];
+        if (!in_array($route, ['', '/'])) {
+            $targetList[] = $className . "::" . $aliasMethod . "_" . $this->request->method;
+            $targetList[] = $className . "::" . $aliasMethod . "_" . strtolower($this->request->method);
+        }
+        if ($targetMethod !== '') {
+            $targetList[] = $className . "::" . $targetMethod;
+        }
+        if (!in_array($route, ['', '/']) && $aliasMethod !== '') {
+            $targetList[] = $className . "::" . $aliasMethod;
+        }
+        return $targetList;
+    }
+
+    private function convertToMethodName($url)
+    {
+        $url = $url[0] == '/' ? substr($url, 1) : $url;
+        return str_replace(
+            "/",
+            "_",
+            $url
+        );
     }
 
     public function run()

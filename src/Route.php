@@ -32,6 +32,19 @@ class Route
         return $router->any($route, $callback);
     }
 
+    public static function alias($route, $callback)
+    {
+        $router = self::router();
+        return $router->alias($route, $callback);
+    }
+
+    public static function register(array $routeList)
+    {
+        foreach ($routeList as $route => $callback) {
+            self::alias($route, $callback);
+        }
+    }
+
     public static function interceptor($callback)
     {
         $router = self::router();
