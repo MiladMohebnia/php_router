@@ -89,7 +89,8 @@ class Router
 
     private function generatePossibleMethodNameList($route, $className)
     {
-        $targetMethod = $this->convertToMethodName($this->request->path);
+        $targetMethod = str_replace("_", ";", $this->request->path);
+        $targetMethod = $this->convertToMethodName($targetMethod);
         $convertedRoute = $this->convertToMethodName($route);
         if (strlen($targetMethod) > 0) {
             $aliasMethod = "";
@@ -97,14 +98,15 @@ class Router
         if ($convertedRoute !== '') {
             $routePositionInTargetMethod = strpos($targetMethod, $this->convertToMethodName($route));
             if ($routePositionInTargetMethod >= 0) {
-                $targetMethod = str_replace("_", "*", $targetMethod);
                 $numberOfSectionsInCoverRoute = count(explode("_", $convertedRoute));
-                $targetMethod_exploded = explode("_", $targetMethod);
+                $targetMethod2 = str_replace("_", ";", $this->request->path);
+                $targetMethod2 = $this->convertToMethodName($targetMethod2);
+                $targetMethod_exploded = explode("_", $targetMethod2);
                 while ($numberOfSectionsInCoverRoute-- > 0) {
                     array_shift($targetMethod_exploded);
                 }
                 $aliasMethod = implode("_", $targetMethod_exploded);
-                $aliasMethod = str_replace("*", "_", $aliasMethod);
+                $aliasMethod = str_replace(";", "_", $aliasMethod);
             }
         }
         $targetList = [
