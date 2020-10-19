@@ -97,12 +97,14 @@ class Router
         if ($convertedRoute !== '') {
             $routePositionInTargetMethod = strpos($targetMethod, $this->convertToMethodName($route));
             if ($routePositionInTargetMethod >= 0) {
+                $targetMethod = str_replace("_", "*", $targetMethod);
                 $numberOfSectionsInCoverRoute = count(explode("_", $convertedRoute));
                 $targetMethod_exploded = explode("_", $targetMethod);
                 while ($numberOfSectionsInCoverRoute-- > 0) {
                     array_shift($targetMethod_exploded);
                 }
                 $aliasMethod = implode("_", $targetMethod_exploded);
+                $aliasMethod = str_replace("*", "_", $aliasMethod);
             }
         }
         $targetList = [
