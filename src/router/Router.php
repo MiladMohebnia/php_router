@@ -2,6 +2,7 @@
 
 namespace miladm\router;
 
+use Exception;
 use miladm\router\exceptions\RequestException;
 
 use function PHPSTORM_META\type;
@@ -190,6 +191,19 @@ class Router
     public function interceptor($callable)
     {
         return $this->interceptor_add($callable);
+    }
+
+    public function expect(string $class)
+    {
+        if (!(class_exists($class) &&
+            ($object = new $class) instanceof RequestDataObject)) {
+            throw new Exception("Error adding expectation of $class", 1);
+        }
+        $interceptor = function ($request, $next) use ($object) {
+            $request = $object->injectData($request);
+            return $next($request);
+        };
+        return $this->interceptor_add($interceptor);
     }
 
     public function interceptor_add($callable)

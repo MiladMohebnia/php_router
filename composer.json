@@ -8,7 +8,9 @@
       "email": "miladmohebnia@gmail.com"
     }
   ],
-  "require": {},
+  "require": {
+    "miladm/data-object": "^1.0"
+  },
   "autoload": {
     "psr-4": {
       "miladm\\": "src/"

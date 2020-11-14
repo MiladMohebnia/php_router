@@ -3,22 +3,10 @@
 namespace miladm\router;
 
 
-class Request
+class Request extends DefaultRequestDataObject
 {
-    public $method  = "Get";
-    public $requestUri = "";
-    public $path    = "";
-    public $query   = "";
-    public $request = "";
-    public $requestHash = "";
-    public $get      = null;
-    public $post     = null;
-    public $file     = null;
-    public $param    = null;
-    public $session  = null;
-    public $cookie   = null;
-    public $attachment = null;
-    public $hashMatch = false;
+
+    // for request attributes read DefaultRequestDataObject
 
     function __construct()
     {

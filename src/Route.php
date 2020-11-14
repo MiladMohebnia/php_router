@@ -51,6 +51,12 @@ class Route
         return $router->globalInterceptor_add($callback);
     }
 
+    public static function expect(string $class)
+    {
+        $router = self::router();
+        return $router->expect($class);
+    }
+
     public static function run()
     {
         $router = self::router();
