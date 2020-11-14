@@ -7,25 +7,37 @@ use miladm\faker\Faker;
 class Fake
 {
 
-    static $faker = null;
+    static $fakeList = [];
 
-    static function get($path, $data = [])
+    static function get($name, $path, $data = [])
     {
-        $faker = self::faker($path);
-        return $faker->get($data);
+        self::$fakeList[$name] = [
+            'method' => 'GET',
+            'path' => $path,
+            'data' => $data
+        ];
     }
 
-    static function post($path, $data = [])
+    static function post($name, $path, $data = [])
     {
-        $faker = self::faker($path);
-        return $faker->post($data);
+        self::$fakeList[$name] = [
+            'method' => 'POST',
+            'path' => $path,
+            'data' => $data
+        ];
     }
 
-    private static function faker($path): Faker
+    public static function run($name)
     {
-        if (self::$faker === null) {
-            self::$faker = new Faker($path);
+        $runnerParams = self::$fakeList[$name];
+        $faker = new Faker($runnerParams['path']);
+        switch ($runnerParams['method']) {
+            case 'GET':
+                $faker->get($runnerParams['data']);
+                break;
+            case 'POST':
+                $faker->post($runnerParams['data']);
+                break;
         }
-        return self::$faker;
     }
 }

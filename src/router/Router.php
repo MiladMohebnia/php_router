@@ -80,7 +80,6 @@ class Router
                         }
                     }
                     return false;
-                    // trigger_error('bad router configuration');
                 } else {
                     trigger_error('bad router configuration');
                 }
@@ -91,7 +90,8 @@ class Router
 
     private function generatePossibleMethodNameList($route, $className)
     {
-        $targetMethod = $this->convertToMethodName($this->request->path);
+        $targetMethod = str_replace("_", ";", $this->request->path);
+        $targetMethod = $this->convertToMethodName($targetMethod);
         $convertedRoute = $this->convertToMethodName($route);
         if (strlen($targetMethod) > 0) {
             $aliasMethod = "";
@@ -99,7 +99,15 @@ class Router
         if ($convertedRoute !== '') {
             $routePositionInTargetMethod = strpos($targetMethod, $this->convertToMethodName($route));
             if ($routePositionInTargetMethod >= 0) {
-                $aliasMethod = substr($targetMethod, strlen($convertedRoute) + 1);
+                $numberOfSectionsInCoverRoute = count(explode("_", $convertedRoute));
+                $targetMethod2 = str_replace("_", ";", $this->request->path);
+                $targetMethod2 = $this->convertToMethodName($targetMethod2);
+                $targetMethod_exploded = explode("_", $targetMethod2);
+                while ($numberOfSectionsInCoverRoute-- > 0) {
+                    array_shift($targetMethod_exploded);
+                }
+                $aliasMethod = implode("_", $targetMethod_exploded);
+                $aliasMethod = str_replace(";", "_", $aliasMethod);
             }
         }
         $targetList = [
@@ -132,7 +140,9 @@ class Router
     public function run()
     {
         try {
-            $this->middleware_run();
+            if (($result = $this->middleware_run()) !== null) {
+                Response::send($result);
+            };
             if (!$this->callback) {
 
                 // here we must have http error 404 not found
@@ -179,8 +189,11 @@ class Router
             $result = $middleware($this->request);
             if ($result instanceof Request) {
                 $this->request = $result;
+            } else {
+                return $result;
             }
         }
+        return null;
     }
 
     public function globalInterceptor_add($callable)
