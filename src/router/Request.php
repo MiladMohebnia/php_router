@@ -49,6 +49,7 @@ class Request extends DefaultRequestDataObject
 
     public function checkIfHashMatch($route)
     {
+        $route = str_replace('(\/|)', '\/', $route);
         return $this->requestHash == md5($route);
     }
 
@@ -147,6 +148,9 @@ class Request extends DefaultRequestDataObject
             $route .= "/";
         }
         $route = RegexName::replace($route);
+
+        // handling last slash situations with optional slash at the end of route (path)
+        $route = substr($route, 0, strlen($route) - 1) . '(/|)';
 
         // replace all slashes
         $route =  str_replace("/", "\/", $route);
