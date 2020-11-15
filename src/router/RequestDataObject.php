@@ -13,7 +13,7 @@ class RequestDataObject extends DefaultRequestDataObject
         } else {
             if (is_string($this->$name) && class_exists($this->$name)) {
                 $this->$name = new $this->$name($value);
-            } elseif (is_object($this->$name)) {
+            } elseif (is_object($this->$name) && (array) $this->$name) {
                 foreach ((array) $this->$name as $key => $val) {
                     $this->$name->$key = new $val($value->$key);
                 }
