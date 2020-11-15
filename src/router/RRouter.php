@@ -5,7 +5,7 @@ namespace miladm\router;
 use Exception;
 use miladm\router\exceptions\RequestException;
 
-class Router
+class RRouter
 {
     private $request;
     private $skip = false;
@@ -19,6 +19,7 @@ class Router
     {
         $this->request = new Request();
     }
+
 
     public function get($route, $callback)
     {
