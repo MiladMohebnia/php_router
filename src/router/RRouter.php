@@ -14,17 +14,65 @@ class RRouter
     private $globalInterceptorList = [];
     private $interceptorList = [];
     private $callback = null;
+    private $bind = null;
+    private $bind_activeState = false;
 
     function __construct()
     {
         $this->request = new Request();
     }
 
+    public function bind(string $path)
+    {
+        if ($path == '') {
+            $this->bind_activeState = true;
+            $this->registerBind($path);
+            return $this;
+        }
+        if ($path[strlen($path) - 1] !== '/') {
+            $path .= '/';
+        }
+        if ($path[0] === '/') {
+            $path = substr($path, 1);
+        }
+        $this->registerBind($path);
+        $checkPath = $path . ".*";
+        $this->bind_activeState = $this->request->checkIfMatch($checkPath);
+        if (!$this->hasBind()) {
+            return $this->skip();
+        }
+        return $this;
+    }
+
+    private function registerBind($path)
+    {
+        $this->bind = $path;
+    }
+
+    private function hasBind()
+    {
+        return $this->bind_activeState;
+    }
+
+    public function controller(string $controllerClassName)
+    {
+        if (!$this->hasBind()) {
+            return $this;
+        }
+        $this->register($this->bind, $controllerClassName);
+        return $this;
+    }
 
     public function get($route, $callback)
     {
         if ($this->request->method !== 'GET') {
             return $this->skip();
+        }
+        if ($this->bind !== null) {
+            if ($route != '' && $route[0] == '/') {
+                $route = substr($route, 1);
+            }
+            $route = $this->bind . $route;
         }
         if (!$this->request->checkIfMatch($route)) {
             return $this->skip();
@@ -38,6 +86,12 @@ class RRouter
         if ($this->request->method !== 'POST') {
             return $this->skip();
         }
+        if ($this->bind !== null) {
+            if ($route != '' && $route[0] == '/') {
+                $route = substr($route, 1);
+            }
+            $route = $this->bind . $route;
+        }
         if (!$this->request->checkIfMatch($route)) {
             return $this->skip();
         }
@@ -47,6 +101,12 @@ class RRouter
 
     public function any($route, $callback)
     {
+        if ($this->bind !== null) {
+            if ($route != '' && $route[0] == '/') {
+                $route = substr($route, 1);
+            }
+            $route = $this->bind . $route;
+        }
         if (!$this->request->checkIfMatch($route)) {
             return $this->skip();
         }
@@ -74,6 +134,7 @@ class RRouter
                 if (class_exists($callback)) {
                     $targetMethodList = $this->generatePossibleMethodNameList($route, $callback);
                     foreach ($targetMethodList as $callback) {
+                        $this->callback = null;
                         if (is_callable($callback)) {
                             return $this->callback = $callback;
                         }
@@ -89,6 +150,7 @@ class RRouter
 
     private function generatePossibleMethodNameList($route, $className)
     {
+        // protectinf '_' in route
         $targetMethod = str_replace("_", ";", $this->request->path);
         $targetMethod = $this->convertToMethodName($targetMethod);
         $convertedRoute = $this->convertToMethodName($route);
@@ -102,23 +164,27 @@ class RRouter
                 $targetMethod2 = str_replace("_", ";", $this->request->path);
                 $targetMethod2 = $this->convertToMethodName($targetMethod2);
                 $targetMethod_exploded = explode("_", $targetMethod2);
-                while ($numberOfSectionsInCoverRoute-- > 0) {
+                while (--$numberOfSectionsInCoverRoute > 0) {
                     array_shift($targetMethod_exploded);
                 }
                 $aliasMethod = implode("_", $targetMethod_exploded);
                 $aliasMethod = str_replace(";", "_", $aliasMethod);
             }
         }
-        $targetList = [
-            $className . "::" . $targetMethod . "_" . $this->request->method,
-            $className . "::" . $targetMethod . "_" . strtolower($this->request->method),
-        ];
+        if ($this->hasBind() && $this->bind != '') {
+            $targetList = [];
+        } else {
+            $targetList = [
+                $className . "::" . $targetMethod . "_" . $this->request->method,
+                $className . "::" . $targetMethod . "_" . strtolower($this->request->method),
+            ];
+            if ($targetMethod !== '') {
+                $targetList[] = $className . "::" . $targetMethod;
+            }
+        }
         if (!in_array($route, ['', '/'])) {
             $targetList[] = $className . "::" . $aliasMethod . "_" . $this->request->method;
             $targetList[] = $className . "::" . $aliasMethod . "_" . strtolower($this->request->method);
-        }
-        if ($targetMethod !== '') {
-            $targetList[] = $className . "::" . $targetMethod;
         }
         if (!in_array($route, ['', '/']) && $aliasMethod !== '') {
             $targetList[] = $className . "::" . $aliasMethod;
@@ -128,7 +194,7 @@ class RRouter
 
     private function convertToMethodName($url)
     {
-        $url = $url[0] == '/' ? substr($url, 1) : $url;
+        $url = $url != '' && $url[0] == '/' ? substr($url, 1) : $url;
         return str_replace(
             "/",
             "_",
