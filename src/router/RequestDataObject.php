@@ -2,6 +2,8 @@
 
 namespace miladm\router;
 
+use miladm\DataObject;
+
 class RequestDataObject extends DefaultRequestDataObject
 {
     private $__data__ = [];
@@ -14,8 +16,17 @@ class RequestDataObject extends DefaultRequestDataObject
             if (is_string($this->$name) && class_exists($this->$name)) {
                 $this->$name = new $this->$name($value);
             } elseif (is_object($this->$name) && (array) $this->$name) {
-                foreach ((array) $this->$name as $key => $val) {
-                    $this->$name->$key = new $val($value->$key);
+                if ($this->$name instanceof DataObject) {
+                    $this->$name = new $this->$name($value);
+                } else {
+
+                    // bad implementation
+                    /**
+                     * Todo: update this part
+                     */
+                    foreach ((array) $this->$name as $key => $val) {
+                        $this->$name->$key = new $val($value->$key);
+                    }
                 }
             } else {
                 $this->$name = $value;
