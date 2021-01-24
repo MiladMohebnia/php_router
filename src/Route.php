@@ -8,6 +8,12 @@ class Route
 {
     static $router = null;
 
+    public static function bind($path)
+    {
+        $router = self::router();
+        return $router->bind($path);
+    }
+
     public static function use($callback)
     {
         $router = self::router();
