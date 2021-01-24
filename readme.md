@@ -20,6 +20,21 @@ Route::run();
 
 # Simple routing
 
+## available methods
+
+| methods     | parameters                               | description                                  |
+| ----------- | ---------------------------------------- | -------------------------------------------- |
+| bind        | path: string                             | bind a master route path to controller       |
+| use         | callback: callableFunction               | register global middleware                   |
+| get         | route:string, callback: callableFunction | handle singe get method route                |
+| post        | route:string, callback: callableFunction | handle single post method route              |
+| any         | route:string, callback: callableFunction | handle single both get and post method route |
+| alias       | route:string, callback: callableFunction |                                              |
+| register    | routeList: array                         |                                              |
+| interceptor | callback: callableFunction               | register global interceptor                  |
+| expect      | class:RequestDataObject                  | change request data in specific dataObject   |
+| run         |                                          | runs the router                              |
+
 ## request
 
 there's a request variable that will enter the router function
@@ -77,7 +92,7 @@ supported types:
 ## All methods
 
 ```php
- Route::post('url/goes/here', function($request) {
+ Route::any('url/goes/here', function($request) {
      return 'hello world~!';
  });
 ```
@@ -128,19 +143,46 @@ here we bind all `/user` and `/user/*` to `UserControllerClass`.
 to create method for each route we can add `_GET` and `_POST` ah the end of each method.
 however it supports if we don't add this method type it will work as `any` route registration.
 
-    Note: you can use lower-case `_get` and `_post` but we recommend to use uppercase `_GET` and `_POST` as the algorithm is looking for uppercase methods first.
+> Note: you can use lower-case `_get` and `_post` but we recommend to use uppercase `_GET` and `_POST` as the algorithm is looking for uppercase methods first.
 
-# available methods
+```php
 
-| methods     | parameters                               | description                                  |
-| ----------- | ---------------------------------------- | -------------------------------------------- |
-| bind        | path: string                             | bind a master route path to controller       |
-| use         | callback: callableFunction               | register global middleware                   |
-| get         | route:string, callback: callableFunction | handle singe get method route                |
-| post        | route:string, callback: callableFunction | handle single post method route              |
-| any         | route:string, callback: callableFunction | handle single both get and post method route |
-| alias       | route:string, callback: callableFunction |                                              |
-| register    | routeList: array                         |                                              |
-| interceptor | callback: callableFunction               | register global interceptor                  |
-| expect      | class:RequestDataObject                  | change request data in specific dataObject   |
-| run         |                                          | runs the router                              |
+Route::bind('/user')
+    ->controller(new UserControllerClass());
+
+class UserController
+{
+    // this goes for http://localhost/user
+    public static function _GET(Request $request)
+    {
+        return 'hello world';
+    }
+
+
+    // this goes for http://localhost/user/login with GET method
+    public static function login_GET(Request $request)
+    {
+        return [
+            'status' => 'login'
+        ];
+    }
+
+    // this goes for http://localhost/user/login with POST method
+    public static function login_POST(Request $request)
+    {
+        $userName = $request->post->userName;
+        $password = $request->post->password;
+    }
+}
+```
+
+> you can add middleware and interceptor for the bind class as well
+
+```php
+    Route::bind('/user')
+        ->controller(new UserControllerClass())
+        ->use(...)
+        ->interceptor(...);
+```
+
+> documentation is in progress but code talks itself. checkout the code for more.

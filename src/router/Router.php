@@ -44,16 +44,6 @@ class Router
         return $this;
     }
 
-    private function registerBind($path)
-    {
-        $this->bind = $path;
-    }
-
-    private function hasBind()
-    {
-        return $this->bind_activeState;
-    }
-
     public function controller(string $controllerClassName)
     {
         if (!$this->hasBind()) {
@@ -124,6 +114,16 @@ class Router
         }
         $this->register($route, $callback);
         return $this;
+    }
+
+    private function registerBind($path)
+    {
+        $this->bind = $path;
+    }
+
+    private function hasBind()
+    {
+        return $this->bind_activeState;
     }
 
     private function register($route, $callback)
