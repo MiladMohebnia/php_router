@@ -133,10 +133,10 @@ Route::get('/home', function($request){ ... })
 
 ```php
     Route::bind('/user')
-        ->controller(new UserControllerClass());
+        ->controller(new UserController());
 ```
 
-here we bind all `/user` and `/user/*` to `UserControllerClass`.
+here we bind all `/user` and `/user/*` to `UserController`.
 
 ## create Controller class
 
@@ -148,7 +148,7 @@ however it supports if we don't add this method type it will work as `any` route
 ```php
 
 Route::bind('/user')
-    ->controller(new UserControllerClass());
+    ->controller(new UserController());
 
 class UserController
 {
@@ -180,7 +180,7 @@ class UserController
 
 ```php
     Route::bind('/user')
-        ->controller(new UserControllerClass())
+        ->controller(new UserController())
         ->use(...)
         ->interceptor(...);
 ```
