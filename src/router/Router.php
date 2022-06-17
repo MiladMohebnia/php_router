@@ -222,27 +222,27 @@ class Router
         }
     }
 
-    public function globalMiddleware_add($callable)
+    public function globalMiddleware_add($callable, ...$params)
     {
-        $this->globalMiddlewareList[] = $callable;
+        $this->globalMiddlewareList[] = [$callable, $params];
     }
 
-    public function use($callable)
+    public function use($callable, $params = null)
     {
-        return $this->middleware_add($callable);
+        return $this->middleware_add($callable, $params);
     }
 
-    public function middleware($callable)
+    public function middleware($callable, ...$params)
     {
-        return $this->middleware_add($callable);
+        return $this->middleware_add($callable, ...$params);
     }
 
-    public function middleware_add($callable)
+    public function middleware_add($callable, ...$params)
     {
         if ($this->skip) {
             return $this;
         }
-        $this->middlewareList[] = $callable;
+        $this->middlewareList[] = [$callable, $params];
         return $this;
     }
 
@@ -250,7 +250,7 @@ class Router
     {
         $middlewareList = array_merge($this->globalMiddlewareList, $this->middlewareList);
         foreach ($middlewareList as $middleware) {
-            $result = $middleware($this->request);
+            $result = $middleware[0]($this->request, ...$middleware[1]);
             if ($result instanceof Request) {
                 $this->request = $result;
             } else {
