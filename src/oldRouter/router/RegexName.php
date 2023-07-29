@@ -1,6 +1,6 @@
 <?php
 
-namespace miladm\router;
+namespace miladm\oldRouter\router;
 
 class RegexName
 {

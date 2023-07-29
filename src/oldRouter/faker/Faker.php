@@ -1,6 +1,6 @@
 <?php
 
-namespace miladm\faker;
+namespace miladm\oldRouter\faker;
 
 defined('DEVMODE') ?: define('DEVMODE', false);
 

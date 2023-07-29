@@ -1,6 +1,6 @@
 <?php
 
-namespace miladm\router\exceptions;
+namespace miladm\oldRouter\router\exceptions;
 
 class RequestException extends \Exception
 {

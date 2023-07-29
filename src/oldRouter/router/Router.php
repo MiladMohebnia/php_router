@@ -1,9 +1,9 @@
 <?php
 
-namespace miladm\router;
+namespace miladm\oldRouter\router;
 
 use Exception;
-use miladm\router\exceptions\RequestException;
+use miladm\oldRouter\router\exceptions\RequestException;
 
 class Router
 {

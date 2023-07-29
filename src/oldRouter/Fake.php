@@ -2,7 +2,7 @@
 
 namespace miladm;
 
-use miladm\faker\Faker;
+use miladm\oldRouter\faker\Faker;
 
 class Fake
 {
