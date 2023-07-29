@@ -12,8 +12,7 @@ abstract class Controller
         return [];
     }
 
-    abstract function handler();
-
+    abstract function handler(Request $request): string | int | array;
 
     protected function version(): string
     {

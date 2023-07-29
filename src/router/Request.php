@@ -2,6 +2,7 @@
 
 namespace miladm\router;
 
+use miladm\request\RequestMethod;
 
 class Request extends DefaultRequestDataObject
 {
@@ -74,28 +75,28 @@ class Request extends DefaultRequestDataObject
 
     private function registerRequestMethod(): void
     {
-        $this->method = $_SERVER['REQUEST_METHOD'] ?? "GET";
+        $this->method = $_SERVER['REQUEST_METHOD'] ?? RequestMethod::GET->value;
     }
 
     private function registerRequestUri(): void
     {
-        $this->requestUri = \urldecode($_SERVER["REQUEST_URI"] ?? '');
+        $this->requestUri = \urldecode($_SERVER['REQUEST_URI'] ?? '');
     }
 
     private function registerRequestPathAndQuery(): void
     {
-        $this->path = parse_url($this->requestUri)["path"];
-        $this->query = parse_url($this->requestUri)["query"] ?? '';
+        $this->path = parse_url($this->requestUri)['path'];
+        $this->query = parse_url($this->requestUri)['query'] ?? '';
     }
 
     private function registerRequestRequestAndRequestHash(): void
     {
         $url_path = $this->path;
-        if (strlen($url_path) == 0 || $url_path[\strlen($url_path) - 1] != "/") {
-            $url_path .= "/";
+        if (strlen($url_path) == 0 || $url_path[\strlen($url_path) - 1] != '/') {
+            $url_path .= '/';
         }
         $this->request = $url_path;
-        $url_path = str_replace("/", "\/", $url_path);
+        $url_path = str_replace('/', '\/', $url_path);
         $this->requestHash = md5($url_path);
     }
 
@@ -111,7 +112,7 @@ class Request extends DefaultRequestDataObject
 
     private function parseBody(): void
     {
-        $this->post = $this->method != "GET" ? $this->read_post() : false;
+        $this->post = $this->method != RequestMethod::GET ? $this->read_post() : false;
         $this->file = count($_FILES) ? (object)$_FILES : null;
     }
 
@@ -132,14 +133,14 @@ class Request extends DefaultRequestDataObject
     {
         if (count($_POST))
             return (object)$_POST;
-        $input = file_get_contents("php://input");
+        $input = file_get_contents('php://input');
         if ($input != null) {
             if (function_exists('getallheaders')) {
                 $headers = getallheaders();
             } else {
                 $headers = $_SERVER;
             }
-            $contentType = $headers['CONTENT_TYPE'] ?? $headers["Content-Type"] ?? false;
+            $contentType = $headers['CONTENT_TYPE'] ?? $headers['Content-Type'] ?? false;
             if (strpos(strtolower($contentType), 'application/json') !== false)
                 return json_decode($input);
             else
@@ -151,12 +152,12 @@ class Request extends DefaultRequestDataObject
     // private function routeToRegex($route)
     // {
 
-    //     // make sure the path starts and stop with slash "/"
-    //     if ($route == "" || $route[0] != "/") {
-    //         $route = "/" . $route;
+    //     // make sure the path starts and stop with slash '/'
+    //     if ($route == '' || $route[0] != '/') {
+    //         $route = '/' . $route;
     //     }
-    //     if ($route[strlen($route) - 1] != "/") {
-    //         $route .= "/";
+    //     if ($route[strlen($route) - 1] != '/') {
+    //         $route .= '/';
     //     }
     //     $route = RegexName::replace($route);
 
@@ -164,13 +165,13 @@ class Request extends DefaultRequestDataObject
     //     $route = substr($route, 0, strlen($route) - 1) . '(/|)';
 
     //     // replace all slashes
-    //     $route =  str_replace("/", "\/", $route);
+    //     $route =  str_replace('/', '\/', $route);
     //     return $route;
     // }
 
     // private function checkIfRegexMatchAndParseInputParams($route)
     // {
-    //     if (preg_match("/^" . $route . "$/", $this->request, $matchList)) {
+    //     if (preg_match('/^' . $route . '$/', $this->request, $matchList)) {
     //         $this->param = (object) $matchList;
     //         return true;
     //     }
