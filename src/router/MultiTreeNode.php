@@ -3,8 +3,9 @@
 namespace miladm\router;
 
 use miladm\router\RequestMethod;
-use miladm\router\Group;
+use miladm\router\interface\Group;
 use miladm\router\Controller;
+use miladm\router\interface\UseMiddleware;
 
 class MultiTreeNode
 {
@@ -27,8 +28,10 @@ class MultiTreeNode
 
     public function bindGroup(Group $group): void
     {
-        $this->middlewareList = $group->middlewareList();
-        foreach ($group->controllerList() as $path => $controllerOrGroup) {
+        if ($group instanceof UseMiddleware) {
+            $this->middlewareList = $group::middlewareList();
+        }
+        foreach ($group::controllerList() as $path => $controllerOrGroup) {
             // TODO: detect index path with contoller type support only for setting in the current node
             if ($controllerOrGroup instanceof Controller) {
                 $this->registerController($path, $controllerOrGroup);
@@ -48,7 +51,9 @@ class MultiTreeNode
 
     public function bindController(Controller $controller): void
     {
-        $this->middlewareList = $controller->middlewareList();
-        $this->controller[$controller->requestMethod()->value] = $controller;
+        if ($controller instanceof UseMiddleware) {
+            $this->middlewareList = $controller::middlewareList();
+        }
+        $this->controller[$controller::requestMethod()->value] = $controller;
     }
 }

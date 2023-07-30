@@ -3,7 +3,7 @@
 namespace miladm\router;
 
 use miladm\router\Controller;
-use miladm\router\Group;
+use miladm\router\interface\Group;
 use miladm\router\interface\Middleware;
 
 class Router

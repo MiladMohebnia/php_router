@@ -6,5 +6,5 @@ use miladm\oldRouter\router\Request;
 
 interface Middleware
 {
-    public function handler(Request $request, callable $next);
+    public static function handler(Request $request, callable $next);
 }
