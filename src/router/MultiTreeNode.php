@@ -3,8 +3,7 @@
 namespace miladm\router;
 
 use miladm\router\RequestMethod;
-use miladm\router\interface\Group;
-use miladm\router\Controller;
+use miladm\router\Group;
 use miladm\router\interface\UseMiddleware;
 
 class MultiTreeNode
@@ -29,14 +28,19 @@ class MultiTreeNode
     public function bindGroup(Group $group): void
     {
         if ($group instanceof UseMiddleware) {
-            $this->middlewareList = $group::middlewareList();
+            $this->middlewareList = $group->middlewareList();
         }
-        foreach ($group::controllerList() as $path => $controllerOrGroup) {
+        foreach ($group->controllerList() as $path => $controllerOrGroup) {
             // TODO: detect index path with contoller type support only for setting in the current node
             if ($controllerOrGroup instanceof Controller) {
                 $this->registerController($path, $controllerOrGroup);
             } elseif ($controllerOrGroup instanceof Group) {
                 $this->registerSubGroup($path, $controllerOrGroup);
+            } else {
+                trigger_error(
+                    "unsupported call back object [$controllerOrGroup] for path [$path]."
+                        . " it must be instance of group or controller"
+                );
             }
         }
     }
@@ -52,8 +56,18 @@ class MultiTreeNode
     public function bindController(Controller $controller): void
     {
         if ($controller instanceof UseMiddleware) {
-            $this->middlewareList = $controller::middlewareList();
+            $this->middlewareList = $controller->middlewareList();
         }
-        $this->controller[$controller::requestMethod()->value] = $controller;
+        $requestMethod = $controller->method()->value;
+        $this->controller[$requestMethod] = $controller;
+    }
+
+    public function dump()
+    {
+        $output = [];
+        foreach ($this->childNodes as $key => $node) {
+            $output[$key] = $node->dump();
+        }
+        return $output;
     }
 }

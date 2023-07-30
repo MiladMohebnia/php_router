@@ -7,9 +7,9 @@ use miladm\router\Request;
 
 abstract class Controller
 {
-    static abstract function handler(Request $request): string | int | array;
+    abstract function handler(Request $request): string | int | array;
 
-    static function requestMethod(): RequestMethod
+    function method(): RequestMethod
     {
         return RequestMethod::GET;
     }
