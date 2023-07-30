@@ -2,9 +2,9 @@
 
 namespace miladm\router;
 
-use miladm\request\RequestMethod;
+use miladm\router\RequestMethod;
 
-class Request extends DefaultRequestDataObject
+class Request
 {
     private string $method;
     private string $requestUri;

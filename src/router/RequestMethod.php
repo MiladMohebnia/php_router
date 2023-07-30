@@ -1,6 +1,6 @@
 <?php
 
-namespace miladm\request;
+namespace miladm\router;
 
 enum RequestMethod: string
 {
