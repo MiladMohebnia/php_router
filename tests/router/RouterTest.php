@@ -124,6 +124,8 @@ class RouterTest extends TestCase
         ]);
         Router::group("/a", $group);
         $tree = Router::dump();
-        $this->assertContains($middleware, $tree["a"][""]["_middlewareList"]);
+        $response = $tree["a"][""]["_middlewareList"];
+        $this->assertEquals([], $response, json_encode($response));
+        $this->assertEquals($controller, $tree["a"][""]["_controller"][$controller->requestMethod()->value]);
     }
 }

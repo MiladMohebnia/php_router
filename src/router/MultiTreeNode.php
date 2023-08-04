@@ -34,11 +34,10 @@ class MultiTreeNode
         }
         foreach ($group->controllerList() as $path => $controllerOrGroup) {
             // TODO: detect index path with contoller type support only for setting in the current node
+            $path = $this->pathFormatter($path);
             if ($controllerOrGroup instanceof Controller) {
-                $path = $this->pathFormatter($path);
                 $this->registerController($path, $controllerOrGroup);
             } elseif ($controllerOrGroup instanceof Group) {
-                $path = $this->pathFormatter($path);
                 $this->registerSubGroup($path, $controllerOrGroup);
             } else {
                 trigger_error(
@@ -51,18 +50,14 @@ class MultiTreeNode
 
     public function registerController(string $path, Controller $controller): void
     {
-        // TODO: if path already registered then trigger error
-        $newNode = new MultiTreeNode;
-        $newNode->bindController($controller);
         $path = $this->pathFormatter($path);
+        $newNode = isset($this->childNodes[$path]) ? $this->childNodes[$path] : new MultiTreeNode;
+        $newNode->bindController($controller);
         $this->childNodes[$path] = $newNode;
     }
 
     public function bindController(Controller $controller): void
     {
-        if ($controller instanceof UseMiddleware) {
-            $this->middlewareList = $controller->middlewareList();
-        }
         $requestMethod = $controller->requestMethod()->value;
         $this->controller[$requestMethod] = $controller;
     }
@@ -79,6 +74,7 @@ class MultiTreeNode
             $output[$key] = $node->dump();
         }
         $output['_middlewareList'] = $this->middlewareList;
+        $output['_controller'] = $this->controller;
         return $output;
     }
 
