@@ -24,7 +24,7 @@ class MultiTreeNode
     public function registerSubGroup(string $path, Group $group): void
     {
         // TODO: if path already registered then trigger error
-        $newNode = new MultiTreeNode;
+        $newNode = isset($this->childNodes[$path]) ? $this->childNodes[$path] : new MultiTreeNode;
         $newNode->bindGroup($group);
         $path = $this->pathFormatter($path);
         $this->childNodes[$path] = $newNode;
@@ -33,10 +33,9 @@ class MultiTreeNode
     public function bindGroup(Group $group): void
     {
         if ($group instanceof UseMiddleware) {
-            $this->middlewareList = $group->middlewareList();
+            $this->middlewareList = array_merge($this->middlewareList, $group->middlewareList());
         }
         foreach ($group->controllerList() as $path => $controllerOrGroup) {
-            // TODO: detect index path with contoller type support only for setting in the current node
             $path = $this->pathFormatter($path);
             if (is_array($controllerOrGroup)) {
                 foreach ($controllerOrGroup as $controller) {
