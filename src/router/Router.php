@@ -10,8 +10,9 @@ class Router
 {
     private static ?MultiTreeNode $tree;
 
-    static function middleware(Middleware $middleware)
+    static function middleware(Middleware $middleware): void
     {
+        self::getTree()->addMiddleware($middleware);
     }
 
     static function group(string $path, Group $group): void
@@ -29,7 +30,7 @@ class Router
     private static function getTree(): MultiTreeNode
     {
         if (!isset(self::$tree)) {
-            self::$tree = new MultiTreeNode;
+            self::reset();
         }
         return self::$tree;
     }
@@ -38,8 +39,13 @@ class Router
     {
     }
 
-    static function dump()
+    static function dump(): array
     {
         return self::$tree->dump();
+    }
+
+    static function reset(): void
+    {
+        self::$tree = new MultiTreeNode;
     }
 }

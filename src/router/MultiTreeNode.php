@@ -4,6 +4,7 @@ namespace miladm\router;
 
 use miladm\router\RequestMethod;
 use miladm\router\Group;
+use miladm\router\interface\Middleware;
 use miladm\router\interface\UseMiddleware;
 
 class MultiTreeNode
@@ -62,12 +63,18 @@ class MultiTreeNode
         $this->controller[$requestMethod] = $controller;
     }
 
-    public function dump()
+    public function addMiddleware(Middleware $middleware): void
+    {
+        $this->middlewareList[] = $middleware;
+    }
+
+    public function dump(): array
     {
         $output = [];
         foreach ($this->childNodes as $key => $node) {
             $output[$key] = $node->dump();
         }
+        $output["_middlewareList"] = $this->middlewareList;
         return $output;
     }
 }

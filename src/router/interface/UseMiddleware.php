@@ -7,5 +7,5 @@ interface UseMiddleware
     /**
      * @return array<Middleware|empty>
      */
-    static function middlewareList(): array;
+    public function middlewareList(): array;
 }
