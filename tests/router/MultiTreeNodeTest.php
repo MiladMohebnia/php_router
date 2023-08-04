@@ -61,7 +61,11 @@ class MultiTreeNodeTest extends TestCase
             $this->multiTreeNode = new MultiTreeNode;
             /** @var Group $group */
             $this->multiTreeNode->registerSubGroup($path, $group);
-            $this->assertArrayHasKey($expectation, $this->multiTreeNode->dump(), json_encode($this->multiTreeNode->dump()));
+            if ($expectation === '') {
+                $this->assertArrayNotHasKey($expectation, $this->multiTreeNode->dump(), json_encode($this->multiTreeNode->dump()));
+            } else {
+                $this->assertArrayHasKey($expectation, $this->multiTreeNode->dump(), json_encode($this->multiTreeNode->dump()));
+            }
         }
     }
 
@@ -325,5 +329,62 @@ class MultiTreeNodeTest extends TestCase
         $next = fn () => null;
         $this->assertEquals($tree['_middlewareList'][0]->handler($request, $next), $tree2['_middlewareList'][0]->handler($request, $next));
         $this->assertEquals($tree['_middlewareList'][1]->handler($request, $next), $tree2['_middlewareList'][1]->handler($request, $next));
+    }
+
+    function testRegisterControllerWithDeepPath_direct()
+    {
+        /** @var MockObject $controller */
+        $controller = $this->createMock(Controller::class);
+        $controller->method('requestMethod')->willReturn(RequestMethod::GET);
+        $path = '/some/path/deep/inside';
+
+        /** @var Controller $controller */
+        $this->multiTreeNode->registerController($path, $controller);
+
+        $tree = $this->multiTreeNode->dump();
+        $this->assertArrayHasKey('inside', $tree['some']['path']['deep']);
+        $this->assertEquals($controller, $this->multiTreeNode->getController($path, RequestMethod::GET));
+    }
+
+    function testRegisterControllerWithDeepPath_fromBindGroup()
+    {
+        /** @var MockObject $controller */
+        $controller = $this->createMock(Controller::class);
+        $controller->method('requestMethod')->willReturn(RequestMethod::GET);
+        $path = '/some/path/deep/inside';
+
+        /** @var MockObject */
+        $group = $this->createMock(Group::class);
+        $group->method('controllerList')->willReturn([
+            $path => $controller
+        ]);
+
+        /** @var Group $group */
+        $this->multiTreeNode->bindGroup($group);
+        $tree = $this->multiTreeNode->dump();
+        $this->assertArrayHasKey('inside', $tree['some']['path']['deep']);
+        $this->assertEquals($controller, $this->multiTreeNode->getController($path, RequestMethod::GET));
+    }
+
+    function testRegisterControllerWithDeepPath_fromRegisterSubGroup()
+    {
+        /** @var MockObject $controller */
+        $controller = $this->createMock(Controller::class);
+        $controller->method('requestMethod')->willReturn(RequestMethod::GET);
+        $path = '/some/path/deep/inside';
+
+        /** @var MockObject */
+        $group = $this->createMock(Group::class);
+        $group->method('controllerList')->willReturn([
+            $path => $controller
+        ]);
+
+        /** @var Group $group */
+        $this->multiTreeNode->registerSubGroup("", $group);
+        $this->multiTreeNode->registerSubGroup("/baraba", $group);
+        $tree = $this->multiTreeNode->dump();
+        $this->assertArrayHasKey('inside', $tree["baraba"]['some']['path']['deep']);
+        $this->assertEquals($controller, $this->multiTreeNode->getController($path, RequestMethod::GET));
+        $this->assertEquals($controller, $this->multiTreeNode->getController("baraba/" . $path, RequestMethod::GET));
     }
 }

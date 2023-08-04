@@ -23,10 +23,13 @@ class MultiTreeNode
 
     public function registerSubGroup(string $path, Group $group): void
     {
-        // TODO: if path already registered then trigger error
+        $path = $this->pathFormatter($path);
+        if ($path === '') {
+            $this->bindGroup($group);
+            return;
+        }
         $newNode = isset($this->childNodes[$path]) ? $this->childNodes[$path] : new MultiTreeNode;
         $newNode->bindGroup($group);
-        $path = $this->pathFormatter($path);
         $this->childNodes[$path] = $newNode;
     }
 
@@ -56,8 +59,17 @@ class MultiTreeNode
     public function registerController(string $path, Controller $controller): void
     {
         $path = $this->pathFormatter($path);
+        if (strpos($path, "/") > 0) {
+            $explodedPath = explode("/", $path);
+            $path = array_shift($explodedPath);
+            $restOfPath = implode("/", $explodedPath);
+        }
         $newNode = isset($this->childNodes[$path]) ? $this->childNodes[$path] : new MultiTreeNode;
-        $newNode->bindController($controller);
+        if (isset($restOfPath)) {
+            $newNode->registerController($restOfPath, $controller);
+        } else {
+            $newNode->bindController($controller);
+        }
         $this->childNodes[$path] = $newNode;
     }
 
