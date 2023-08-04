@@ -23,6 +23,7 @@ class MultiTreeNode
         // TODO: if path already registered then trigger error
         $newNode = new MultiTreeNode;
         $newNode->bindGroup($group);
+        $path = $this->pathFormatter($path);
         $this->childNodes[$path] = $newNode;
     }
 
@@ -34,13 +35,15 @@ class MultiTreeNode
         foreach ($group->controllerList() as $path => $controllerOrGroup) {
             // TODO: detect index path with contoller type support only for setting in the current node
             if ($controllerOrGroup instanceof Controller) {
+                $path = $this->pathFormatter($path);
                 $this->registerController($path, $controllerOrGroup);
             } elseif ($controllerOrGroup instanceof Group) {
+                $path = $this->pathFormatter($path);
                 $this->registerSubGroup($path, $controllerOrGroup);
             } else {
                 trigger_error(
-                    "unsupported call back object [$controllerOrGroup] for path [$path]."
-                        . " it must be instance of group or controller"
+                    'unsupported call back object [$controllerOrGroup] for path [$path].'
+                        . ' it must be instance of group or controller'
                 );
             }
         }
@@ -51,6 +54,7 @@ class MultiTreeNode
         // TODO: if path already registered then trigger error
         $newNode = new MultiTreeNode;
         $newNode->bindController($controller);
+        $path = $this->pathFormatter($path);
         $this->childNodes[$path] = $newNode;
     }
 
@@ -74,7 +78,22 @@ class MultiTreeNode
         foreach ($this->childNodes as $key => $node) {
             $output[$key] = $node->dump();
         }
-        $output["_middlewareList"] = $this->middlewareList;
+        $output['_middlewareList'] = $this->middlewareList;
         return $output;
+    }
+
+    private function pathFormatter(string $path): string
+    {
+        if (strlen($path) > 0 && $path[0] === '/') {
+            $path = substr($path, 1);
+        }
+        $length = strlen($path);
+        if ($length > 0 && $path[$length - 1] === '/') {
+            $path = substr($path, 0, $length - 1);
+        }
+        if ($path === 'index') {
+            $path = '';
+        }
+        return $path;
     }
 }

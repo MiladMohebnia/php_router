@@ -24,11 +24,9 @@ class RouterTest extends TestCase
     {
         $group = $this->createMock(Group::class);
         $path = "/testGroup";
-
         Router::group($path, $group);
-
         $tree = Router::dump();
-        $this->assertArrayHasKey($path, $tree);
+        $this->assertArrayHasKey("testGroup", $tree);
     }
 
     public function testControllerRegistration()
@@ -37,11 +35,9 @@ class RouterTest extends TestCase
         $controller = $this->createMock(Controller::class);
         $controller->method('requestMethod')->willReturn(RequestMethod::GET);
         $path = "/anything";
-
         Router::controller($path, $controller);
-
         $tree = Router::dump();
-        $this->assertArrayHasKey($path, $tree);
+        $this->assertArrayHasKey("anything", $tree);
     }
 
     public function testSubGroupRegistration()
@@ -58,13 +54,11 @@ class RouterTest extends TestCase
             "/controller" => $controller
         ]);
         $path = "/parentGroup";
-
-        Router::group($path, $group1);
-
+        Router::group("parentGroup", $group1);
         $tree = Router::dump();
-        $this->assertArrayHasKey($path, $tree);
-        $this->assertArrayHasKey("/otherGroup", $tree[$path]);
-        $this->assertArrayHasKey("/controller", $tree[$path]);
+        $this->assertArrayHasKey("parentGroup", $tree);
+        $this->assertArrayHasKey("otherGroup", $tree["parentGroup"]);
+        $this->assertArrayHasKey("controller", $tree["parentGroup"]);
     }
 
     public function testGlobalMiddleware()
@@ -73,12 +67,9 @@ class RouterTest extends TestCase
         $group1 = $this->createMock(Group::class);
         $path = "/sampleGroupForMiddleware";
         Router::group($path, $group1);
-
         $mw = $this->createMock(Middleware::class);
-
         Router::middleware($mw);
         $tree = Router::dump();
-
         $this->assertEquals($tree["_middlewareList"], [$mw]);
     }
 
@@ -88,14 +79,11 @@ class RouterTest extends TestCase
         $group1 = $this->createMock(Group::class);
         $path = "/sampleGroupForMiddleware";
         Router::group($path, $group1);
-
         $mw = $this->createMock(Middleware::class);
         $mw2 = $this->createMock(Middleware::class);
-
         Router::middleware($mw2);
         Router::middleware($mw);
         $tree = Router::dump();
-
         $this->assertEquals($tree["_middlewareList"], [$mw2, $mw]);
     }
 
@@ -116,7 +104,7 @@ class RouterTest extends TestCase
         ]);
         Router::group("/a", $group);
         $tree = Router::dump();
-        $this->assertContains($middleware, $tree["/a"]["_middlewareList"]);
+        $this->assertContains($middleware, $tree["a"]["_middlewareList"]);
     }
 
     public function testGroupControllerMiddleware()
@@ -136,6 +124,6 @@ class RouterTest extends TestCase
         ]);
         Router::group("/a", $group);
         $tree = Router::dump();
-        $this->assertContains($middleware, $tree["/a"]["/index"]["_middlewareList"]);
+        $this->assertContains($middleware, $tree["a"][""]["_middlewareList"]);
     }
 }
