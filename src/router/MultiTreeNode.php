@@ -80,13 +80,12 @@ class MultiTreeNode
     ): Controller | false {
         $path = $this->pathFormatter($path);
         $explodedPath = explode("/", $path);
-        $childNodePath = array_shift($explodedPath);
-        $newPath = implode("/", $explodedPath);
 
         if ($path === "" && isset($this->controller[$requestMethod->value])) {
             return $this->controller[$requestMethod->value];
         }
 
+        $childNodePath = array_shift($explodedPath);
         if (
             ($path === "" && !isset($this->controller[$requestMethod->value]))
             || !isset($this->childNodes[$childNodePath])
@@ -94,6 +93,7 @@ class MultiTreeNode
             return $this->controllerNotFoundIfNeeded($path, $childMethod);
         }
 
+        $newPath = implode("/", $explodedPath);
         return
             $this->childNodes[$childNodePath]->getController($newPath, $requestMethod, true)
             ?: $this->controllerNotFoundIfNeeded($path, $childMethod);
