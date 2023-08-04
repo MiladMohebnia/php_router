@@ -58,7 +58,7 @@ class MultiTreeNode
         if ($controller instanceof UseMiddleware) {
             $this->middlewareList = $controller->middlewareList();
         }
-        $requestMethod = $controller->method()->value;
+        $requestMethod = $controller->requestMethod()->value;
         $this->controller[$requestMethod] = $controller;
     }
 

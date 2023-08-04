@@ -9,7 +9,7 @@ abstract class Controller
 {
     abstract function handler(Request $request): string | int | array;
 
-    function method(): RequestMethod
+    function requestMethod(): RequestMethod
     {
         return RequestMethod::GET;
     }
