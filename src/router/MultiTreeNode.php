@@ -2,6 +2,9 @@
 
 namespace miladm\router;
 
+use Exception;
+use miladm\router\exceptions\ControllerNotFound;
+use miladm\router\exceptions\InvalidControllerType;
 use miladm\router\RequestMethod;
 use miladm\router\Group;
 use miladm\router\interface\Middleware;
@@ -46,10 +49,7 @@ class MultiTreeNode
             } elseif ($controllerOrGroup instanceof Group) {
                 $this->registerSubGroup($path, $controllerOrGroup);
             } else {
-                trigger_error(
-                    'unsupported call back object [$controllerOrGroup] for path [$path].'
-                        . ' it must be instance of group or controller'
-                );
+                throw new InvalidControllerType($controllerOrGroup, $path);
             }
         }
     }
@@ -73,34 +73,38 @@ class MultiTreeNode
         $this->middlewareList[] = $middleware;
     }
 
-    public function getController(string $path, RequestMethod $requestMethod)
-    {
-        if ($path === "") {
-            if (!isset($this->controller[$requestMethod->value])) {
-                die(var_dump(
-                    'controller not exists'
-                ));
-            }
+    public function getController(
+        string $path,
+        RequestMethod $requestMethod,
+        bool $childMethod = false
+    ): Controller | false {
+        $path = $this->pathFormatter($path);
+        $explodedPath = explode("/", $path);
+        $childNodePath = array_shift($explodedPath);
+        $newPath = implode("/", $explodedPath);
+
+        if ($path === "" && isset($this->controller[$requestMethod->value])) {
             return $this->controller[$requestMethod->value];
         }
-        $path = $this->pathFormatter($path);
-        if (strpos($path, "/") > 0) {
-            $explodedPath = explode("/", $path);
-            $childNodePath = array_shift($explodedPath);
-            if (!isset($this->childNodes[$childNodePath])) {
-                die(var_dump(
-                    $childNodePath,
-                    $explodedPath
-                ));
-            }
-            return $this->childNodes[$childNodePath]->getController(implode("/", $explodedPath), $requestMethod);
+
+        if (
+            ($path === "" && !isset($this->controller[$requestMethod->value]))
+            || !isset($this->childNodes[$childNodePath])
+        ) {
+            return $this->controllerNotFoundIfNeeded($path, $childMethod);
         }
-        if (!isset($this->childNodes[$path])) {
-            die(var_dump(
-                $path
-            ));
+
+        return
+            $this->childNodes[$childNodePath]->getController($newPath, $requestMethod, true)
+            ?: $this->controllerNotFoundIfNeeded($path, $childMethod);
+    }
+
+    private function controllerNotFoundIfNeeded($path, $childMethod): false
+    {
+        if (!$childMethod) {
+            throw new ControllerNotFound($path);
         }
-        return $this->childNodes[$path]->getController("", $requestMethod);
+        return false;
     }
 
     public function dump(): array

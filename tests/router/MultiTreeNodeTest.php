@@ -2,7 +2,10 @@
 
 namespace miladmTest\router;
 
+use Exception;
 use miladm\router\Controller;
+use miladm\router\exceptions\ControllerNotFound;
+use miladm\router\exceptions\InvalidControllerType;
 use miladm\router\Group;
 use miladm\router\interface\Middleware;
 use miladm\router\MultiTreeNode;
@@ -80,6 +83,21 @@ class MultiTreeNodeTest extends TestCase
         foreach (self::pathList as $path => $expectation) {
             $this->assertArrayHasKey($expectation, $this->multiTreeNode->dump(), json_encode($this->multiTreeNode->dump()));
         }
+    }
+
+    function testErrorOnBindGroup()
+    {
+        $this->expectException(InvalidControllerType::class);
+        $controllerList = [
+            "" => 1
+        ];
+
+        /** @var MockObject $group */
+        $group = $this->createMock(Group::class);
+        $group->method('controllerList')->willReturn($controllerList);
+
+        /** @var Group $group */
+        $this->multiTreeNode->bindGroup($group);
     }
 
     function testMiddleware()
@@ -205,5 +223,42 @@ class MultiTreeNodeTest extends TestCase
             RequestMethod::GET,
             $this->multiTreeNode->getController('action1', RequestMethod::GET)->requestMethod()
         );
+    }
+
+    private function setSampleForControllerNotFound()
+    {
+        /** @var MockObject $controller */
+        $controller = $this->createMock(Controller::class);
+        $controller->method('requestMethod')->willReturn(RequestMethod::GET);
+
+        /** @var MockObject */
+        $group = $this->createMock(Group::class);
+        $group->method('controllerList')->willReturn([
+            'action1' => $controller
+        ]);
+
+        /** @var Group $group */
+        $this->multiTreeNode->bindGroup($group);
+    }
+
+    function testControllerNotFound_basicTest()
+    {
+        $this->expectException(ControllerNotFound::class);
+        $this->setSampleForControllerNotFound();
+        $this->multiTreeNode->getController('', RequestMethod::GET);
+    }
+
+    function testControllerNotFound_requestMethodTest()
+    {
+        $this->expectException(ControllerNotFound::class);
+        $this->setSampleForControllerNotFound();
+        $this->multiTreeNode->getController('action1', RequestMethod::POST);
+    }
+
+    function testControllerNotFound_subPathNotFound()
+    {
+        $this->expectException(ControllerNotFound::class);
+        $this->setSampleForControllerNotFound();
+        $this->multiTreeNode->getController('action1/something', RequestMethod::GET);
     }
 }
