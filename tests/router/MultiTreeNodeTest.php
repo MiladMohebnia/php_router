@@ -8,6 +8,7 @@ use miladm\router\interface\Middleware;
 use miladm\router\MultiTreeNode;
 use miladm\router\RequestMethod;
 use miladmTest\router\stubs\ControllerWithMiddleware;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class MultiTreeNodeTest extends TestCase
@@ -119,5 +120,90 @@ class MultiTreeNodeTest extends TestCase
             RequestMethod::GET->value => $controller,
             RequestMethod::POST->value => $controller
         ], $tree['']['_controller'], json_encode($tree['']['_controller']));
+    }
+
+    function testGetController()
+    {
+
+        /** @var MockObject $controller */
+        $controller = $this->createMock(Controller::class);
+        $controller->method('requestMethod')->willReturn(RequestMethod::GET);
+
+        /** @var MockObject $controller2 */
+        $controller2 = $this->createMock(Controller::class);
+        $controller2->method('requestMethod')->willReturn(RequestMethod::POST);
+
+        /** @var MockObject */
+        $group2 = $this->createMock(Group::class);
+        $group2->method('controllerList')->willReturn([
+            'action1' => $controller
+        ]);
+
+        /** @var MockObject */
+        $group3 = $this->createMock(Group::class);
+        $group3->method('controllerList')->willReturn([
+            'action5' => $controller2,
+            'sub' => $group2
+        ]);
+
+        /** @var MockObject */
+        $group = $this->createMock(Group::class);
+        $group->method('controllerList')->willReturn([
+            'action1' => $controller,
+            'group2' => $group2,
+            'so' => $group3
+        ]);
+
+        /** @var Group $group */
+        $this->multiTreeNode->bindGroup($group);
+        $expectationTest = [
+            '/action1/' => $controller,
+            'action1/' => $controller,
+            '/group2/action1/' => $controller,
+            'action1' => $controller,
+            'group2/action1' => $controller,
+            'so/sub/action1' => $controller
+        ];
+        foreach ($expectationTest as $path => $controllerItem) {
+            $this->assertEquals(
+                $controllerItem,
+                $this->multiTreeNode->getController($path, RequestMethod::GET)
+            );
+        }
+        $this->assertEquals(
+            RequestMethod::POST,
+            $this->multiTreeNode->getController('so/action5', RequestMethod::POST)->requestMethod()
+        );
+    }
+
+    function testBindMultipleControllerByGroup()
+    {
+        /** @var MockObject $controller */
+        $controller = $this->createMock(Controller::class);
+        $controller->method('requestMethod')->willReturn(RequestMethod::GET);
+
+        /** @var MockObject $controller2 */
+        $controller2 = $this->createMock(Controller::class);
+        $controller2->method('requestMethod')->willReturn(RequestMethod::POST);
+
+        /** @var MockObject */
+        $group = $this->createMock(Group::class);
+        $group->method('controllerList')->willReturn([
+            'action1' => [
+                $controller,
+                $controller2
+            ]
+        ]);
+
+        /** @var Group $group */
+        $this->multiTreeNode->bindGroup($group);
+        $this->assertEquals(
+            RequestMethod::POST,
+            $this->multiTreeNode->getController('action1', RequestMethod::POST)->requestMethod()
+        );
+        $this->assertEquals(
+            RequestMethod::GET,
+            $this->multiTreeNode->getController('action1', RequestMethod::GET)->requestMethod()
+        );
     }
 }

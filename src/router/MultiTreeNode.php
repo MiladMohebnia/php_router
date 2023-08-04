@@ -35,7 +35,13 @@ class MultiTreeNode
         foreach ($group->controllerList() as $path => $controllerOrGroup) {
             // TODO: detect index path with contoller type support only for setting in the current node
             $path = $this->pathFormatter($path);
-            if ($controllerOrGroup instanceof Controller) {
+            if (is_array($controllerOrGroup)) {
+                foreach ($controllerOrGroup as $controller) {
+                    if ($controller instanceof Controller) {
+                        $this->registerController($path, $controller);
+                    }
+                }
+            } elseif ($controllerOrGroup instanceof Controller) {
                 $this->registerController($path, $controllerOrGroup);
             } elseif ($controllerOrGroup instanceof Group) {
                 $this->registerSubGroup($path, $controllerOrGroup);
@@ -65,6 +71,36 @@ class MultiTreeNode
     public function addMiddleware(Middleware $middleware): void
     {
         $this->middlewareList[] = $middleware;
+    }
+
+    public function getController(string $path, RequestMethod $requestMethod)
+    {
+        if ($path === "") {
+            if (!isset($this->controller[$requestMethod->value])) {
+                die(var_dump(
+                    'controller not exists'
+                ));
+            }
+            return $this->controller[$requestMethod->value];
+        }
+        $path = $this->pathFormatter($path);
+        if (strpos($path, "/") > 0) {
+            $explodedPath = explode("/", $path);
+            $childNodePath = array_shift($explodedPath);
+            if (!isset($this->childNodes[$childNodePath])) {
+                die(var_dump(
+                    $childNodePath,
+                    $explodedPath
+                ));
+            }
+            return $this->childNodes[$childNodePath]->getController(implode("/", $explodedPath), $requestMethod);
+        }
+        if (!isset($this->childNodes[$path])) {
+            die(var_dump(
+                $path
+            ));
+        }
+        return $this->childNodes[$path]->getController("", $requestMethod);
     }
 
     public function dump(): array
