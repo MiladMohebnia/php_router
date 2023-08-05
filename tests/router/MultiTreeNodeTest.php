@@ -382,9 +382,80 @@ class MultiTreeNodeTest extends TestCase
         /** @var Group $group */
         $this->multiTreeNode->registerSubGroup("", $group);
         $this->multiTreeNode->registerSubGroup("/baraba", $group);
+        $this->multiTreeNode->registerSubGroup("here/sub/group", $group);
         $tree = $this->multiTreeNode->dump();
         $this->assertArrayHasKey('inside', $tree["baraba"]['some']['path']['deep']);
+        $this->assertArrayHasKey('group', $tree['here']['sub']);
         $this->assertEquals($controller, $this->multiTreeNode->getController($path, RequestMethod::GET));
         $this->assertEquals($controller, $this->multiTreeNode->getController("baraba/" . $path, RequestMethod::GET));
     }
+
+    function testRegisterControllerWithDynamicParam()
+    {
+        /** @var MockObject $controller */
+        $controller = $this->createMock(Controller::class);
+        $controller->method('requestMethod')->willReturn(RequestMethod::GET);
+        $path = '/somepath/:dynamicParameter';
+
+        /** @var MockObject */
+        $group = $this->createMock(Group::class);
+        $group->method('controllerList')->willReturn([
+            $path => $controller
+        ]);
+
+        /** @var Group $group */
+        $this->multiTreeNode->bindGroup($group);
+        $tree = $this->multiTreeNode->dump();
+        $this->assertArrayHasKey(':dynamicParameter', $tree['somepath']['_dynamicPathNodeList']);
+        $this->assertEquals($controller, $this->multiTreeNode->getController("/somepath/somedata", RequestMethod::GET));
+        $this->assertEquals($controller, $this->multiTreeNode->getController("/somepath/other", RequestMethod::GET));
+        $this->assertEquals($controller, $this->multiTreeNode->getController("/somepath/data", RequestMethod::GET));
+    }
+
+    // check support both override and dynamic url
+
+    // check support for group dynamic 
+    function testRegisterSubGroupWithDynamicParam()
+    {
+        /** @var MockObject $controller */
+        $controller = $this->createMock(Controller::class);
+        $controller->method('requestMethod')->willReturn(RequestMethod::GET);
+        $path = '/somepath/:dynamicParameter';
+
+        /** @var MockObject */
+        $group = $this->createMock(Group::class);
+        $group->method('controllerList')->willReturn([
+            $path => $controller
+        ]);
+
+        /** @var Group $group */
+        $this->multiTreeNode->registerSubGroup("/group/:item", $group);
+        $tree = $this->multiTreeNode->dump();
+        $this->assertArrayHasKey(':item', $tree['group']['_dynamicPathNodeList']);
+        $this->assertArrayHasKey(
+            ':dynamicParameter',
+            $tree['group']['_dynamicPathNodeList'][':item']['somepath']['_dynamicPathNodeList']
+        );
+        $this->assertEquals(
+            $controller,
+            $this->multiTreeNode->getController("/group/1234/somepath/somedata", RequestMethod::GET)
+        );
+        $this->assertEquals(
+            $controller,
+            $this->multiTreeNode->getController("/group/othertype/somepath/other", RequestMethod::GET)
+        );
+        $this->assertEquals(
+            $controller,
+            $this->multiTreeNode->getController("group/somethingelse/somepath/data", RequestMethod::GET)
+        );
+        $this->expectException(ControllerNotFound::class);
+        $this->assertEquals(
+            $controller,
+            $this->multiTreeNode->getController("group/somepath/data", RequestMethod::GET)
+        );
+    }
+
+    // one path with multiple dynamic parameter 
+
+    // dynamic routes add a middleware to enter the dynamic parameter of the url in the request object
 }

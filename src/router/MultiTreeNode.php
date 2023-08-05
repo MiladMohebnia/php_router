@@ -21,6 +21,9 @@ class MultiTreeNode
     /** array<RequestMethod, Controller> $middlewareList */
     private array $controller = [];
 
+    /** @var array<string, MultiTreeNode> $dynamicPathNodeList */
+    private array $dynamicPathNodeList = [];
+
     public function registerSubGroup(string $path, Group $group): void
     {
         $path = $this->pathFormatter($path);
@@ -28,9 +31,18 @@ class MultiTreeNode
             $this->bindGroup($group);
             return;
         }
-        $newNode = isset($this->childNodes[$path]) ? $this->childNodes[$path] : new MultiTreeNode;
-        $newNode->bindGroup($group);
-        $this->childNodes[$path] = $newNode;
+        if (strpos($path, "/") > 0) {
+            $explodedPath = explode("/", $path);
+            $path = array_shift($explodedPath);
+            $restOfPath = implode("/", $explodedPath);
+        }
+        $newNode = $this->getNodeOrCreateNew($path);
+        if (isset($restOfPath)) {
+            $newNode->registerSubGroup($restOfPath, $group);
+        } else {
+            $newNode->bindGroup($group);
+        }
+        $this->registerNode($path, $newNode);
     }
 
     public function bindGroup(Group $group): void
@@ -64,13 +76,14 @@ class MultiTreeNode
             $path = array_shift($explodedPath);
             $restOfPath = implode("/", $explodedPath);
         }
-        $newNode = isset($this->childNodes[$path]) ? $this->childNodes[$path] : new MultiTreeNode;
+        $newNode = $this->getNodeOrCreateNew($path);
         if (isset($restOfPath)) {
             $newNode->registerController($restOfPath, $controller);
         } else {
             $newNode->bindController($controller);
         }
-        $this->childNodes[$path] = $newNode;
+
+        $this->registerNode($path, $newNode);
     }
 
     public function bindController(Controller $controller): void
@@ -97,14 +110,21 @@ class MultiTreeNode
         }
 
         $childNodePath = array_shift($explodedPath);
-        if (
-            ($path === "" && !isset($this->controller[$requestMethod->value]))
-            || !isset($this->childNodes[$childNodePath])
-        ) {
+        $newPath = implode("/", $explodedPath);
+
+        if ($path === "" && !isset($this->controller[$requestMethod->value])) {
             return $this->controllerNotFoundIfNeeded($path, $childMethod);
         }
+        if (!isset($this->childNodes[$childNodePath])) {
+            if (count($this->dynamicPathNodeList) == 0) {
+                return $this->controllerNotFoundIfNeeded($path, $childMethod);
+            }
+            foreach ($this->dynamicPathNodeList as $node) {
+                return $node->getController($newPath, $requestMethod, true)
+                    ?: $this->controllerNotFoundIfNeeded($path, $childMethod);
+            }
+        }
 
-        $newPath = implode("/", $explodedPath);
         return
             $this->childNodes[$childNodePath]->getController($newPath, $requestMethod, true)
             ?: $this->controllerNotFoundIfNeeded($path, $childMethod);
@@ -126,6 +146,9 @@ class MultiTreeNode
         }
         $output['_middlewareList'] = $this->middlewareList;
         $output['_controller'] = $this->controller;
+        foreach ($this->dynamicPathNodeList as $key => $node) {
+            $output['_dynamicPathNodeList'][$key] = $node->dump();
+        }
         return $output;
     }
 
@@ -142,5 +165,20 @@ class MultiTreeNode
             $path = '';
         }
         return $path;
+    }
+
+    private function getNodeOrCreateNew(string $path): MultiTreeNode
+    {
+        return isset($this->childNodes[$path]) ? $this->childNodes[$path] : new MultiTreeNode;
+    }
+
+    private function registerNode(string $path, MultiTreeNode $node)
+    {
+        // detect invalid character for path
+        if (strpos($path, ":") !== false) {
+            $this->dynamicPathNodeList[$path] = $node;
+        } else {
+            $this->childNodes[$path] = $node;
+        }
     }
 }
