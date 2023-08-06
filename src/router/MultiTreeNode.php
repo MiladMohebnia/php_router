@@ -2,7 +2,6 @@
 
 namespace miladm\router;
 
-use Exception;
 use miladm\router\exceptions\ControllerNotFound;
 use miladm\router\exceptions\InvalidControllerType;
 use miladm\router\RequestMethod;
