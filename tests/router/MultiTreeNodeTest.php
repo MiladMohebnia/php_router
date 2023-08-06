@@ -2,7 +2,7 @@
 
 namespace miladmTest\router;
 
-use miladm\oldRouter\router\Request;
+use miladm\router\Request;
 use miladm\router\Controller;
 use miladm\router\exceptions\ControllerNotFound;
 use miladm\router\exceptions\InvalidControllerType;
@@ -412,9 +412,40 @@ class MultiTreeNodeTest extends TestCase
         $this->assertEquals($controller, $this->multiTreeNode->getController("/somepath/data", RequestMethod::GET));
     }
 
-    // check support both override and dynamic url
+    function testSupportBothOverrideAndDynamicUrl()
+    {
+        /** @var MockObject $controller */
+        $controller = $this->createMock(Controller::class);
+        $controller->method('requestMethod')->willReturn(RequestMethod::GET);
+        $controller->method('handler')->willReturn(1);
 
-    // check support for group dynamic 
+        /** @var MockObject $controller1 */
+        $controller1 = $this->createMock(Controller::class);
+        $controller1->method('requestMethod')->willReturn(RequestMethod::GET);
+        $controller1->method('handler')->willReturn(2);
+
+        $request = $this->createMock(Request::class);
+
+        /** 
+         * @var Controller $controller
+         * @var Controller $controller1 
+         * */
+        $this->multiTreeNode->registerController('/dir/other', $controller);
+        $this->multiTreeNode->registerController('/dir/:id', $controller1);
+        $this->assertEquals(
+            $controller->handler($request),
+            $this->multiTreeNode->getController('/dir/other', RequestMethod::GET)->handler($request)
+        );
+        $this->assertEquals(
+            $controller1->handler($request),
+            $this->multiTreeNode->getController('/dir/other1', RequestMethod::GET)->handler($request)
+        );
+        $this->assertEquals(
+            $controller1->handler($request),
+            $this->multiTreeNode->getController('/dir/123', RequestMethod::GET)->handler($request)
+        );
+    }
+
     function testRegisterSubGroupWithDynamicParam()
     {
         /** @var MockObject $controller */
@@ -455,7 +486,77 @@ class MultiTreeNodeTest extends TestCase
         );
     }
 
-    // one path with multiple dynamic parameter 
+    function testMultipleDynamicParameters()
+    {
+        /** @var MockObject $controller */
+        $controller = $this->createMock(Controller::class);
+        $controller->method('requestMethod')->willReturn(RequestMethod::GET);
+        $controller->method('handler')->willReturn(1);
+
+        /** @var MockObject $controller1 */
+        $controller1 = $this->createMock(Controller::class);
+        $controller1->method('requestMethod')->willReturn(RequestMethod::GET);
+        $controller1->method('handler')->willReturn(2);
+
+        /** @var MockObject $controller2 */
+        $controller2 = $this->createMock(Controller::class);
+        $controller2->method('requestMethod')->willReturn(RequestMethod::GET);
+        $controller2->method('handler')->willReturn(3);
+
+        $request = $this->createMock(Request::class);
+
+        /** 
+         * @var Controller $controller
+         * @var Controller $controller1
+         * @var Controller $controller2
+         * */
+        $this->multiTreeNode->registerController('/dir/:other/option1', $controller);
+        $this->multiTreeNode->registerController('/dir/:id/option2', $controller1);
+        $this->multiTreeNode->registerController('/dir/:anythingelse', $controller2);
+        $this->assertEquals(
+            $controller->handler($request),
+            $this->multiTreeNode->getController('/dir/something/option1', RequestMethod::GET)->handler($request)
+        );
+        $this->assertEquals(
+            $controller1->handler($request),
+            $this->multiTreeNode->getController('/dir/something/option2', RequestMethod::GET)->handler($request)
+        );
+        $this->assertEquals(
+            $controller2->handler($request),
+            $this->multiTreeNode->getController('/dir/123', RequestMethod::GET)->handler($request)
+        );
+    }
+
+    function testUpdateDynamicPath()
+    {
+        $request = $this->createMock(Request::class);
+
+        /** @var MockObject $controller */
+        $controller = $this->createMock(Controller::class);
+        $controller->method('requestMethod')->willReturn(RequestMethod::GET);
+        $controller->method('handler')->willReturn(1);
+
+        /** @var MockObject $controller1 */
+        $controller1 = $this->createMock(Controller::class);
+        $controller1->method('requestMethod')->willReturn(RequestMethod::GET);
+        $controller1->method('handler')->willReturn(2);
+
+        /** 
+         * @var Controller $controller
+         * @var Controller $controller1
+         * */
+        $this->multiTreeNode->registerController('/dir/:id/option1', $controller);
+        $this->multiTreeNode->registerController('/dir/:id/option2', $controller1);
+
+        $this->assertEquals(
+            $controller->handler($request),
+            $this->multiTreeNode->getController('/dir/something/option1', RequestMethod::GET)->handler($request)
+        );
+        $this->assertEquals(
+            $controller1->handler($request),
+            $this->multiTreeNode->getController('/dir/something/option2', RequestMethod::GET)->handler($request)
+        );
+    }
 
     // dynamic routes add a middleware to enter the dynamic parameter of the url in the request object
 }

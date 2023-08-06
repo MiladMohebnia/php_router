@@ -2,7 +2,7 @@
 
 namespace miladm\router\interface;
 
-use miladm\oldRouter\router\Request;
+use miladm\router\Request;
 
 interface Middleware
 {

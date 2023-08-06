@@ -120,13 +120,18 @@ class MultiTreeNode
                 return $this->controllerNotFoundIfNeeded($path, $childMethod);
             }
             foreach ($this->dynamicPathNodeList as $node) {
-                return $node->getController($newPath, $requestMethod, true)
-                    ?: $this->controllerNotFoundIfNeeded($path, $childMethod);
+                $controller = $node->getController($newPath, $requestMethod, true)
+                    ?: false;
+                if (!$controller) {
+                    continue;
+                }
+                break;
             }
+            return $controller ?: $this->controllerNotFoundIfNeeded($path, $childMethod);
         }
 
         return
-            $this->childNodes[$childNodePath]->getController($newPath, $requestMethod, true)
+            $this->childNodes[$childNodePath]?->getController($newPath, $requestMethod, true)
             ?: $this->controllerNotFoundIfNeeded($path, $childMethod);
     }
 
@@ -169,7 +174,11 @@ class MultiTreeNode
 
     private function getNodeOrCreateNew(string $path): MultiTreeNode
     {
-        return isset($this->childNodes[$path]) ? $this->childNodes[$path] : new MultiTreeNode;
+        if (strpos($path, ":") !== false) {
+            return isset($this->dynamicPathNodeList[$path]) ? $this->dynamicPathNodeList[$path] : new MultiTreeNode;
+        } else {
+            return isset($this->childNodes[$path]) ? $this->childNodes[$path] : new MultiTreeNode;
+        }
     }
 
     private function registerNode(string $path, MultiTreeNode $node)
