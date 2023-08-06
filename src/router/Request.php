@@ -6,26 +6,28 @@ use miladm\router\RequestMethod;
 
 class Request
 {
-    private string $method;
-    private string $requestUri;
-    private string $path;
-    private string $query = '';
-    private ?object $get = null;
-    private ?object $post = null;
-    private ?object $file = null;
-    private ?object $session = null;
-    private ?object $cookie = null;
-    private ?object $attachment = null;
-    private bool $hashMatch = false;
-    private string $request;
-    private string $requestHash;
+    public RequestMethod $requestMethod;
+    public string $requestUri;
+    public string $path;
+    public string $query = '';
+    public ?object $get = null;
+    public ?object $post = null;
+    public ?object $file = null;
+    public ?object $session = null;
+    public ?object $cookie = null;
+
+
+    // public ?object $attachment = null;
+    // public bool $hashMatch = false;
+    // public string $request;
+    // public string $requestHash;
 
     function __construct()
     {
         $this->registerRequestMethod();
         $this->registerRequestUri();
         $this->registerRequestPathAndQuery();
-        $this->registerRequestRequestAndRequestHash();
+        // $this->registerRequestRequestAndRequestHash();
         $this->parseQuery();
         $this->parseBody();
         $this->registerRequestSessionAndCookie();
@@ -65,17 +67,17 @@ class Request
     //     return $this->requestHash == md5($route);
     // }
 
-    public function attach(array $data): self
-    {
-        $attachment = (array) $this->attachment;
-        $attachment += $data;
-        $this->attachment = (object) $attachment;
-        return $this;
-    }
+    // public function attach(array $data): self
+    // {
+    //     $attachment = (array) $this->attachment;
+    //     $attachment += $data;
+    //     $this->attachment = (object) $attachment;
+    //     return $this;
+    // }
 
     private function registerRequestMethod(): void
     {
-        $this->method = $_SERVER['REQUEST_METHOD'] ?? RequestMethod::GET->value;
+        $this->requestMethod = RequestMethod::getRequestMethodFrom($_SERVER['REQUEST_METHOD']) ?? RequestMethod::GET;
     }
 
     private function registerRequestUri(): void
@@ -89,16 +91,16 @@ class Request
         $this->query = parse_url($this->requestUri)['query'] ?? '';
     }
 
-    private function registerRequestRequestAndRequestHash(): void
-    {
-        $url_path = $this->path;
-        if (strlen($url_path) == 0 || $url_path[\strlen($url_path) - 1] != '/') {
-            $url_path .= '/';
-        }
-        $this->request = $url_path;
-        $url_path = str_replace('/', '\/', $url_path);
-        $this->requestHash = md5($url_path);
-    }
+    // private function registerRequestRequestAndRequestHash(): void
+    // {
+    //     $url_path = $this->path;
+    //     if (strlen($url_path) == 0 || $url_path[\strlen($url_path) - 1] != '/') {
+    //         $url_path .= '/';
+    //     }
+    //     // $this->request = $url_path;
+    //     $url_path = str_replace('/', '\/', $url_path);
+    //     // $this->requestHash = md5($url_path);
+    // }
 
     private function parseQuery(): void
     {
@@ -112,7 +114,7 @@ class Request
 
     private function parseBody(): void
     {
-        $this->post = $this->method != RequestMethod::GET ? $this->read_post() : false;
+        $this->post = $this->requestMethod != RequestMethod::GET ? $this->read_post() : false;
         $this->file = count($_FILES) ? (object)$_FILES : null;
     }
 
@@ -144,7 +146,7 @@ class Request
             if (strpos(strtolower($contentType), 'application/json') !== false)
                 return json_decode($input);
             else
-                return  $input;
+                return $input;
         }
         return null;
     }
