@@ -96,6 +96,12 @@ class MultiTreeNode
         $this->middlewareList[] = $middleware;
     }
 
+    /** @return array<Middleware> */
+    public function getMiddlewareList(): array
+    {
+        return $this->middlewareList;
+    }
+
     public function getController(
         RequestMethod $requestMethod
     ) {
@@ -146,13 +152,16 @@ class MultiTreeNode
     public function findControllerNode(
         string $path,
         RequestMethod $requestMethod,
-        bool $childMethod = false
+        bool $childMethod = false,
+        array $parentMiddlewareList = []
     ): self | false {
         $path = $this->pathFormatter($path);
         $explodedPath = explode("/", $path);
 
         if ($path === "" && isset($this->controller[$requestMethod->value])) {
-            return $this;
+            $node = clone $this;
+            $node->mergeParentMiddlewareList($parentMiddlewareList);
+            return $node;
         }
 
         $childNodePath = array_shift($explodedPath);
@@ -161,12 +170,13 @@ class MultiTreeNode
         if ($path === "" && !isset($this->controller[$requestMethod->value])) {
             return $this->controllerNotFoundIfNeeded($path, $childMethod);
         }
+        $parentMiddlewareList = array_merge($parentMiddlewareList, $this->middlewareList);
         if (!isset($this->childNodes[$childNodePath])) {
             if (count($this->dynamicPathNodeList) == 0) {
                 return $this->controllerNotFoundIfNeeded($path, $childMethod);
             }
             foreach ($this->dynamicPathNodeList as $node) {
-                $node = $node->findControllerNode($newPath, $requestMethod, true)
+                $node = $node->findControllerNode($newPath, $requestMethod, true, $parentMiddlewareList)
                     ?: false;
                 if (!$node) {
                     continue;
@@ -177,7 +187,7 @@ class MultiTreeNode
         }
 
         return
-            $this->childNodes[$childNodePath]?->findControllerNode($newPath, $requestMethod, true)
+            $this->childNodes[$childNodePath]?->findControllerNode($newPath, $requestMethod, true, $parentMiddlewareList)
             ?: $this->controllerNotFoundIfNeeded($path, $childMethod);
     }
 
@@ -187,6 +197,11 @@ class MultiTreeNode
             throw new ControllerNotFound($path);
         }
         return false;
+    }
+
+    public function mergeParentMiddlewareList(array $parentMiddlewareList = [])
+    {
+        $this->middlewareList = array_merge($parentMiddlewareList, $this->middlewareList);
     }
 
     public function dump(): array

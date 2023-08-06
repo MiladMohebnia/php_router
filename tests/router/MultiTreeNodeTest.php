@@ -269,6 +269,9 @@ class MultiTreeNodeTest extends TestCase
 
     function testOverrideAndMergeGroups()
     {
+        $request = $this->createMock(Request::class);
+        $next = fn () => null;
+
         /** @var MockObject $controller */
         $controller = $this->createMock(Controller::class);
         $controller->method('requestMethod')->willReturn(RequestMethod::GET);
@@ -295,18 +298,17 @@ class MultiTreeNodeTest extends TestCase
         $this->multiTreeNode->bindGroup($group);
 
         /** @var MockObject */
-        $group = $this->createMock(GroupWithMiddleware::class);
-        $group->method('controllerList')->willReturn([
+        $group1 = $this->createMock(GroupWithMiddleware::class);
+        $group1->method('controllerList')->willReturn([
             'action2' => $controller
         ]);
-        $group->method('middlewareList')->willReturn([
+        $group1->method('middlewareList')->willReturn([
             $mw2
         ]);
 
-        /** @var Group $group */
-        $this->multiTreeNode->bindGroup($group);
+        /** @var Group $group1 */
+        $this->multiTreeNode->bindGroup($group1);
         $tree = $this->multiTreeNode->dump();
-
         $otherMultiNode = new MultiTreeNode;
 
         /** @var MockObject */
@@ -325,8 +327,6 @@ class MultiTreeNodeTest extends TestCase
         $tree2 = $otherMultiNode->dump();
         $this->assertEquals($tree, $tree2, json_encode([$tree, $tree2]));
 
-        $request = $this->createMock(Request::class);
-        $next = fn () => null;
         $this->assertEquals($tree['_middlewareList'][0]->handler($request, $next), $tree2['_middlewareList'][0]->handler($request, $next));
         $this->assertEquals($tree['_middlewareList'][1]->handler($request, $next), $tree2['_middlewareList'][1]->handler($request, $next));
     }
@@ -625,6 +625,348 @@ class MultiTreeNodeTest extends TestCase
                 'so/action5',
                 RequestMethod::POST
             )->getController(RequestMethod::POST)->handler($request)
+        );
+    }
+
+    function testGetNode_middlewarePassing()
+    {
+        $request = $this->createMock(Request::class);
+        $next = fn () => null;
+
+        /** @var MockObject $controller */
+        $controller = $this->createMock(Controller::class);
+        $controller->method('requestMethod')->willReturn(RequestMethod::GET);
+        $controller->method('handler')->willReturn(1);
+
+        /** @var MockObject */
+        $mw = $this->createMock(Middleware::class);
+        $mw->method('handler')->willReturn('hello');
+
+        /** @var MockObject */
+        $mw2 = $this->createMock(Middleware::class);
+        $mw2->method('handler')->willReturn('bye');
+
+        /** @var MockObject */
+        $group2 = $this->createMock(GroupWithMiddleware::class);
+        $group2->method('controllerList')->willReturn([
+            'action1' => $controller
+        ]);
+        $group2->method('middlewareList')->willReturn([
+            $mw
+        ]);
+
+        /** @var MockObject */
+        $group3 = $this->createMock(GroupWithMiddleware::class);
+        $group3->method('controllerList')->willReturn([
+            'action5' => $controller,
+            'sub' => $group2
+        ]);
+        $group3->method('middlewareList')->willReturn([
+            $mw
+        ]);
+
+        /** @var MockObject */
+        $group = $this->createMock(GroupWithMiddleware::class);
+        $group->method('controllerList')->willReturn([
+            'action1' => $controller,
+            'group2' => $group2,
+            'so' => $group3
+        ]);
+        $group->method('middlewareList')->willReturn([
+            $mw2
+        ]);
+
+        /** 
+         * @var Group $group 
+         * @var Middleware $mw
+         * @var Middleware $mw2
+         * */
+        $this->multiTreeNode->bindGroup($group);
+        $nodeMiddleware = $this->multiTreeNode->findControllerNode(
+            '/group2/action1',
+            RequestMethod::GET
+        )->getMiddlewareList();
+
+        $this->assertEquals(2, count($nodeMiddleware));
+        $this->assertEquals(
+            [
+                $mw2->handler($request, $next),
+                $mw->handler($request, $next)
+            ],
+            [
+                $nodeMiddleware[0]->handler($request, $next),
+                $nodeMiddleware[1]->handler($request, $next),
+            ]
+        );
+
+        $nodeMiddleware = $this->multiTreeNode->findControllerNode(
+            '/action1',
+            RequestMethod::GET
+        )->getMiddlewareList();
+
+        $this->assertEquals(1, count($nodeMiddleware));
+        $this->assertEquals(
+            $mw2->handler($request, $next),
+            $nodeMiddleware[0]->handler($request, $next),
+        );
+
+        $nodeMiddleware = $this->multiTreeNode->findControllerNode(
+            'so/sub/action1',
+            RequestMethod::GET
+        )->getMiddlewareList();
+
+        $this->assertEquals(3, count($nodeMiddleware));
+        $this->assertEquals(
+            [
+                $mw2->handler($request, $next),
+                $mw->handler($request, $next),
+                $mw->handler($request, $next),
+            ],
+            [
+                $nodeMiddleware[0]->handler($request, $next),
+                $nodeMiddleware[1]->handler($request, $next),
+                $nodeMiddleware[2]->handler($request, $next),
+            ]
+        );
+
+        $nodeMiddleware = $this->multiTreeNode->findControllerNode(
+            'so/action5',
+            RequestMethod::GET
+        )->getMiddlewareList();
+
+        $this->assertEquals(2, count($nodeMiddleware));
+        $this->assertEquals(
+            [
+                $mw2->handler($request, $next),
+                $mw->handler($request, $next),
+            ],
+            [
+                $nodeMiddleware[0]->handler($request, $next),
+                $nodeMiddleware[1]->handler($request, $next),
+            ]
+        );
+    }
+
+    function testGetNode_middlewarePassing_multipleBindingForSinglePath()
+    {
+        $request = $this->createMock(Request::class);
+        $next = fn () => null;
+
+        /** @var MockObject $controller */
+        $controller = $this->createMock(Controller::class);
+        $controller->method('requestMethod')->willReturn(RequestMethod::GET);
+        $controller->method('handler')->willReturn(1);
+
+        /** @var MockObject */
+        $mw = $this->createMock(Middleware::class);
+        $mw->method('handler')->willReturn('hello');
+
+        /** @var MockObject */
+        $mw2 = $this->createMock(Middleware::class);
+        $mw2->method('handler')->willReturn('bye');
+
+        /** @var MockObject */
+        $group = $this->createMock(GroupWithMiddleware::class);
+        $group->method('controllerList')->willReturn([
+            'action1' => $controller,
+        ]);
+
+        $group->method('middlewareList')->willReturn([
+            $mw
+        ]);
+
+        /** @var MockObject */
+        $group2 = $this->createMock(GroupWithMiddleware::class);
+        $group2->method('controllerList')->willReturn([
+            'action1' => $controller
+        ]);
+        $group2->method('middlewareList')->willReturn([
+            $mw2
+        ]);
+
+        /** 
+         * @var Group $group
+         * @var Group $group2
+         * @var Middleware $mw
+         * @var Middleware $mw2
+         * */
+        $this->multiTreeNode->bindGroup($group);
+        $this->multiTreeNode->bindGroup($group2);
+
+        $nodeMiddleware = $this->multiTreeNode->findControllerNode(
+            '/action1',
+            RequestMethod::GET
+        )->getMiddlewareList();
+
+        $this->assertEquals(2, count($nodeMiddleware));
+        $this->assertEquals(
+            [
+                $mw->handler($request, $next),
+                $mw2->handler($request, $next),
+            ],
+            [
+                $nodeMiddleware[0]->handler($request, $next),
+                $nodeMiddleware[1]->handler($request, $next),
+            ]
+        );
+    }
+
+    function testGetNode_middlewarePassing_dynamicPath()
+    {
+        $request = $this->createMock(Request::class);
+        $next = fn () => null;
+
+        /** @var MockObject $controller */
+        $controller = $this->createMock(Controller::class);
+        $controller->method('requestMethod')->willReturn(RequestMethod::GET);
+        $controller->method('handler')->willReturn(1);
+
+        /** @var MockObject $controller1 */
+        $controller1 = $this->createMock(Controller::class);
+        $controller1->method('requestMethod')->willReturn(RequestMethod::GET);
+        $controller1->method('handler')->willReturn(2);
+
+        /** @var MockObject */
+        $mw = $this->createMock(Middleware::class);
+        $mw->method('handler')->willReturn('hello');
+
+        /** @var MockObject */
+        $mw2 = $this->createMock(Middleware::class);
+        $mw2->method('handler')->willReturn('bye');
+
+        /** @var MockObject */
+        $group = $this->createMock(GroupWithMiddleware::class);
+        $group->method('controllerList')->willReturn([
+            ':id' => $controller1,
+        ]);
+
+        $group->method('middlewareList')->willReturn([
+            $mw
+        ]);
+
+        /** @var MockObject */
+        $group2 = $this->createMock(GroupWithMiddleware::class);
+        $group2->method('controllerList')->willReturn([
+            'action1' => $controller
+        ]);
+        $group2->method('middlewareList')->willReturn([
+            $mw2
+        ]);
+
+        /** 
+         * @var Group $group
+         * @var Group $group2
+         * @var Controller $controller
+         * @var Controller $controller1
+         * @var Middleware $mw
+         * @var Middleware $mw2
+         * */
+        $this->multiTreeNode->bindGroup($group);
+        $this->multiTreeNode->bindGroup($group2);
+
+        $node = $this->multiTreeNode->findControllerNode(
+            '/action1',
+            RequestMethod::GET
+        );
+        $nodeMiddleware = $node->getMiddlewareList();
+        $this->assertEquals(
+            $controller->handler($request),
+            $node->getController(RequestMethod::GET)->handler($request)
+        );
+        $this->assertEquals(2, count($nodeMiddleware));
+        $this->assertEquals(
+            [
+                $mw->handler($request, $next),
+                $mw2->handler($request, $next),
+            ],
+            [
+                $nodeMiddleware[0]->handler($request, $next),
+                $nodeMiddleware[1]->handler($request, $next),
+            ]
+        );
+
+        $node = $this->multiTreeNode->findControllerNode(
+            '/somethingDynamic',
+            RequestMethod::GET
+        );
+        $nodeMiddleware = $node->getMiddlewareList();
+        $this->assertEquals(
+            $controller1->handler($request),
+            $node->getController(RequestMethod::GET)->handler($request)
+        );
+        // <<<<<<<<<<<<<<<<<<<<<<<<< here we should expect another middleware added to queue
+        // <<<<<<<<<<<<<<<<<<<<<<<< maybe passing the param.
+        // <<<<<<<<<<<<<<<<<<<<<<<<<< or we should ignore this and just edit the request params :thinking
+        $this->assertEquals(2, count($nodeMiddleware));
+        $this->assertEquals(
+            [
+                $mw->handler($request, $next),
+                $mw2->handler($request, $next),
+            ],
+            [
+                $nodeMiddleware[0]->handler($request, $next),
+                $nodeMiddleware[1]->handler($request, $next),
+            ]
+        );
+    }
+
+    function testGetNode_middlewarePassing_notEffectingMainNode()
+    {
+        $request = $this->createMock(Request::class);
+        $next = fn () => null;
+
+        /** @var MockObject $controller */
+        $controller = $this->createMock(Controller::class);
+        $controller->method('requestMethod')->willReturn(RequestMethod::GET);
+        $controller->method('handler')->willReturn(1);
+
+        /** @var MockObject */
+        $mw = $this->createMock(Middleware::class);
+        $mw->method('handler')->willReturn('hello');
+
+        /** @var MockObject */
+        $mw2 = $this->createMock(Middleware::class);
+        $mw2->method('handler')->willReturn('bye');
+
+        /** @var MockObject */
+        $group = $this->createMock(GroupWithMiddleware::class);
+        $group->method('controllerList')->willReturn([
+            'something' => $controller,
+        ]);
+
+        $group->method('middlewareList')->willReturn([
+            $mw
+        ]);
+
+        /** @var MockObject */
+        $group2 = $this->createMock(GroupWithMiddleware::class);
+        $group2->method('controllerList')->willReturn([
+            'gg' => $group
+        ]);
+        $group2->method('middlewareList')->willReturn([
+            $mw2
+        ]);
+
+        /** 
+         * @var Group $group
+         * @var Group $group2
+         * @var Controller $controller
+         * @var Middleware $mw
+         * @var Middleware $mw2
+         * */
+        $this->multiTreeNode->bindGroup($group2);
+
+        $tree = $this->multiTreeNode->dump();
+        $this->assertEquals(1, count($tree['_middlewareList']));
+        $this->assertEquals(1, count($tree['gg']['_middlewareList']));
+        $this->assertEquals(0, count($tree['gg']['something']['_middlewareList']));
+        $this->assertEquals(
+            $mw->handler($request, $next),
+            $tree['gg']['_middlewareList'][0]->handler($request, $next)
+        );
+        $this->assertEquals(
+            $mw2->handler($request, $next),
+            $tree['_middlewareList'][0]->handler($request, $next)
         );
     }
 }
