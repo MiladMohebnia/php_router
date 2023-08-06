@@ -190,12 +190,12 @@ class MultiTreeNodeTest extends TestCase
         foreach ($expectationTest as $path => $controllerItem) {
             $this->assertEquals(
                 $controllerItem,
-                $this->multiTreeNode->getController($path, RequestMethod::GET)
+                $this->multiTreeNode->findController($path, RequestMethod::GET)
             );
         }
         $this->assertEquals(
             RequestMethod::POST,
-            $this->multiTreeNode->getController('so/action5', RequestMethod::POST)->requestMethod()
+            $this->multiTreeNode->findController('so/action5', RequestMethod::POST)->requestMethod()
         );
     }
 
@@ -222,11 +222,11 @@ class MultiTreeNodeTest extends TestCase
         $this->multiTreeNode->bindGroup($group);
         $this->assertEquals(
             RequestMethod::POST,
-            $this->multiTreeNode->getController('action1', RequestMethod::POST)->requestMethod()
+            $this->multiTreeNode->findController('action1', RequestMethod::POST)->requestMethod()
         );
         $this->assertEquals(
             RequestMethod::GET,
-            $this->multiTreeNode->getController('action1', RequestMethod::GET)->requestMethod()
+            $this->multiTreeNode->findController('action1', RequestMethod::GET)->requestMethod()
         );
     }
 
@@ -250,21 +250,21 @@ class MultiTreeNodeTest extends TestCase
     {
         $this->expectException(ControllerNotFound::class);
         $this->setSampleForControllerNotFound();
-        $this->multiTreeNode->getController('', RequestMethod::GET);
+        $this->multiTreeNode->findController('', RequestMethod::GET);
     }
 
     function testControllerNotFound_requestMethodTest()
     {
         $this->expectException(ControllerNotFound::class);
         $this->setSampleForControllerNotFound();
-        $this->multiTreeNode->getController('action1', RequestMethod::POST);
+        $this->multiTreeNode->findController('action1', RequestMethod::POST);
     }
 
     function testControllerNotFound_subPathNotFound()
     {
         $this->expectException(ControllerNotFound::class);
         $this->setSampleForControllerNotFound();
-        $this->multiTreeNode->getController('action1/something', RequestMethod::GET);
+        $this->multiTreeNode->findController('action1/something', RequestMethod::GET);
     }
 
     function testOverrideAndMergeGroups()
@@ -343,7 +343,7 @@ class MultiTreeNodeTest extends TestCase
 
         $tree = $this->multiTreeNode->dump();
         $this->assertArrayHasKey('inside', $tree['some']['path']['deep']);
-        $this->assertEquals($controller, $this->multiTreeNode->getController($path, RequestMethod::GET));
+        $this->assertEquals($controller, $this->multiTreeNode->findController($path, RequestMethod::GET));
     }
 
     function testRegisterControllerWithDeepPath_fromBindGroup()
@@ -363,7 +363,7 @@ class MultiTreeNodeTest extends TestCase
         $this->multiTreeNode->bindGroup($group);
         $tree = $this->multiTreeNode->dump();
         $this->assertArrayHasKey('inside', $tree['some']['path']['deep']);
-        $this->assertEquals($controller, $this->multiTreeNode->getController($path, RequestMethod::GET));
+        $this->assertEquals($controller, $this->multiTreeNode->findController($path, RequestMethod::GET));
     }
 
     function testRegisterControllerWithDeepPath_fromRegisterSubGroup()
@@ -386,8 +386,8 @@ class MultiTreeNodeTest extends TestCase
         $tree = $this->multiTreeNode->dump();
         $this->assertArrayHasKey('inside', $tree["baraba"]['some']['path']['deep']);
         $this->assertArrayHasKey('group', $tree['here']['sub']);
-        $this->assertEquals($controller, $this->multiTreeNode->getController($path, RequestMethod::GET));
-        $this->assertEquals($controller, $this->multiTreeNode->getController("baraba/" . $path, RequestMethod::GET));
+        $this->assertEquals($controller, $this->multiTreeNode->findController($path, RequestMethod::GET));
+        $this->assertEquals($controller, $this->multiTreeNode->findController("baraba/" . $path, RequestMethod::GET));
     }
 
     function testRegisterControllerWithDynamicParam()
@@ -407,9 +407,9 @@ class MultiTreeNodeTest extends TestCase
         $this->multiTreeNode->bindGroup($group);
         $tree = $this->multiTreeNode->dump();
         $this->assertArrayHasKey(':dynamicParameter', $tree['somepath']['_dynamicPathNodeList']);
-        $this->assertEquals($controller, $this->multiTreeNode->getController("/somepath/somedata", RequestMethod::GET));
-        $this->assertEquals($controller, $this->multiTreeNode->getController("/somepath/other", RequestMethod::GET));
-        $this->assertEquals($controller, $this->multiTreeNode->getController("/somepath/data", RequestMethod::GET));
+        $this->assertEquals($controller, $this->multiTreeNode->findController("/somepath/somedata", RequestMethod::GET));
+        $this->assertEquals($controller, $this->multiTreeNode->findController("/somepath/other", RequestMethod::GET));
+        $this->assertEquals($controller, $this->multiTreeNode->findController("/somepath/data", RequestMethod::GET));
     }
 
     function testSupportBothOverrideAndDynamicUrl()
@@ -434,15 +434,15 @@ class MultiTreeNodeTest extends TestCase
         $this->multiTreeNode->registerController('/dir/:id', $controller1);
         $this->assertEquals(
             $controller->handler($request),
-            $this->multiTreeNode->getController('/dir/other', RequestMethod::GET)->handler($request)
+            $this->multiTreeNode->findController('/dir/other', RequestMethod::GET)->handler($request)
         );
         $this->assertEquals(
             $controller1->handler($request),
-            $this->multiTreeNode->getController('/dir/other1', RequestMethod::GET)->handler($request)
+            $this->multiTreeNode->findController('/dir/other1', RequestMethod::GET)->handler($request)
         );
         $this->assertEquals(
             $controller1->handler($request),
-            $this->multiTreeNode->getController('/dir/123', RequestMethod::GET)->handler($request)
+            $this->multiTreeNode->findController('/dir/123', RequestMethod::GET)->handler($request)
         );
     }
 
@@ -469,20 +469,20 @@ class MultiTreeNodeTest extends TestCase
         );
         $this->assertEquals(
             $controller,
-            $this->multiTreeNode->getController("/group/1234/somepath/somedata", RequestMethod::GET)
+            $this->multiTreeNode->findController("/group/1234/somepath/somedata", RequestMethod::GET)
         );
         $this->assertEquals(
             $controller,
-            $this->multiTreeNode->getController("/group/othertype/somepath/other", RequestMethod::GET)
+            $this->multiTreeNode->findController("/group/othertype/somepath/other", RequestMethod::GET)
         );
         $this->assertEquals(
             $controller,
-            $this->multiTreeNode->getController("group/somethingelse/somepath/data", RequestMethod::GET)
+            $this->multiTreeNode->findController("group/somethingelse/somepath/data", RequestMethod::GET)
         );
         $this->expectException(ControllerNotFound::class);
         $this->assertEquals(
             $controller,
-            $this->multiTreeNode->getController("group/somepath/data", RequestMethod::GET)
+            $this->multiTreeNode->findController("group/somepath/data", RequestMethod::GET)
         );
     }
 
@@ -515,15 +515,15 @@ class MultiTreeNodeTest extends TestCase
         $this->multiTreeNode->registerController('/dir/:anythingelse', $controller2);
         $this->assertEquals(
             $controller->handler($request),
-            $this->multiTreeNode->getController('/dir/something/option1', RequestMethod::GET)->handler($request)
+            $this->multiTreeNode->findController('/dir/something/option1', RequestMethod::GET)->handler($request)
         );
         $this->assertEquals(
             $controller1->handler($request),
-            $this->multiTreeNode->getController('/dir/something/option2', RequestMethod::GET)->handler($request)
+            $this->multiTreeNode->findController('/dir/something/option2', RequestMethod::GET)->handler($request)
         );
         $this->assertEquals(
             $controller2->handler($request),
-            $this->multiTreeNode->getController('/dir/123', RequestMethod::GET)->handler($request)
+            $this->multiTreeNode->findController('/dir/123', RequestMethod::GET)->handler($request)
         );
     }
 
@@ -550,13 +550,81 @@ class MultiTreeNodeTest extends TestCase
 
         $this->assertEquals(
             $controller->handler($request),
-            $this->multiTreeNode->getController('/dir/something/option1', RequestMethod::GET)->handler($request)
+            $this->multiTreeNode->findController('/dir/something/option1', RequestMethod::GET)->handler($request)
         );
         $this->assertEquals(
             $controller1->handler($request),
-            $this->multiTreeNode->getController('/dir/something/option2', RequestMethod::GET)->handler($request)
+            $this->multiTreeNode->findController('/dir/something/option2', RequestMethod::GET)->handler($request)
         );
     }
 
     // dynamic routes add a middleware to enter the dynamic parameter of the url in the request object
+
+    function testGetNode()
+    {
+        $request = $this->createMock(Request::class);
+
+        /** @var MockObject $controller */
+        $controller = $this->createMock(Controller::class);
+        $controller->method('requestMethod')->willReturn(RequestMethod::GET);
+        $controller->method('handler')->willReturn(1);
+
+        /** @var MockObject $controller2 */
+        $controller2 = $this->createMock(Controller::class);
+        $controller2->method('requestMethod')->willReturn(RequestMethod::POST);
+        $controller2->method('handler')->willReturn(2);
+
+        /** @var MockObject */
+        $group2 = $this->createMock(Group::class);
+        $group2->method('controllerList')->willReturn([
+            'action1' => $controller
+        ]);
+
+        /** @var MockObject */
+        $group3 = $this->createMock(Group::class);
+        $group3->method('controllerList')->willReturn([
+            'action5' => $controller2,
+            'sub' => $group2
+        ]);
+
+        /** @var MockObject */
+        $group = $this->createMock(Group::class);
+        $group->method('controllerList')->willReturn([
+            'action1' => $controller,
+            'group2' => $group2,
+            'so' => $group3
+        ]);
+
+        /** @var Group $group */
+        $this->multiTreeNode->bindGroup($group);
+        $expectationTest = [
+            '/action1/' => $controller,
+            'action1/' => $controller,
+            '/group2/action1/' => $controller,
+            'action1' => $controller,
+            'group2/action1' => $controller,
+            'so/sub/action1' => $controller
+        ];
+        /**
+         * @var Controller $controller
+         * @var Controller $controller2
+         * @var Controller $controllerItem
+         */
+        foreach ($expectationTest as $path => $controllerItem) {
+            $this->assertEquals(
+                $controllerItem->handler($request),
+                $this->multiTreeNode->findControllerNode(
+                    $path,
+                    RequestMethod::GET
+                )->getController(RequestMethod::GET)->handler($request)
+            );
+        }
+        $this->assertEquals(
+            $controller2->handler($request),
+            $this->multiTreeNode->findControllerNode(
+                'so/action5',
+                RequestMethod::POST
+            )->getController(RequestMethod::POST)->handler($request)
+        );
+    }
 }

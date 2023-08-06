@@ -97,6 +97,15 @@ class MultiTreeNode
     }
 
     public function getController(
+        RequestMethod $requestMethod
+    ) {
+        if (isset($this->controller[$requestMethod->value])) {
+            return $this->controller[$requestMethod->value];
+        }
+        throw new ControllerNotFound('');
+    }
+
+    public function findController(
         string $path,
         RequestMethod $requestMethod,
         bool $childMethod = false
@@ -119,7 +128,7 @@ class MultiTreeNode
                 return $this->controllerNotFoundIfNeeded($path, $childMethod);
             }
             foreach ($this->dynamicPathNodeList as $node) {
-                $controller = $node->getController($newPath, $requestMethod, true)
+                $controller = $node->findController($newPath, $requestMethod, true)
                     ?: false;
                 if (!$controller) {
                     continue;
@@ -130,7 +139,45 @@ class MultiTreeNode
         }
 
         return
-            $this->childNodes[$childNodePath]?->getController($newPath, $requestMethod, true)
+            $this->childNodes[$childNodePath]?->findController($newPath, $requestMethod, true)
+            ?: $this->controllerNotFoundIfNeeded($path, $childMethod);
+    }
+
+    public function findControllerNode(
+        string $path,
+        RequestMethod $requestMethod,
+        bool $childMethod = false
+    ): self | false {
+        $path = $this->pathFormatter($path);
+        $explodedPath = explode("/", $path);
+
+        if ($path === "" && isset($this->controller[$requestMethod->value])) {
+            return $this;
+        }
+
+        $childNodePath = array_shift($explodedPath);
+        $newPath = implode("/", $explodedPath);
+
+        if ($path === "" && !isset($this->controller[$requestMethod->value])) {
+            return $this->controllerNotFoundIfNeeded($path, $childMethod);
+        }
+        if (!isset($this->childNodes[$childNodePath])) {
+            if (count($this->dynamicPathNodeList) == 0) {
+                return $this->controllerNotFoundIfNeeded($path, $childMethod);
+            }
+            foreach ($this->dynamicPathNodeList as $node) {
+                $node = $node->findControllerNode($newPath, $requestMethod, true)
+                    ?: false;
+                if (!$node) {
+                    continue;
+                }
+                break;
+            }
+            return $node ?: $this->controllerNotFoundIfNeeded($path, $childMethod);
+        }
+
+        return
+            $this->childNodes[$childNodePath]?->findControllerNode($newPath, $requestMethod, true)
             ?: $this->controllerNotFoundIfNeeded($path, $childMethod);
     }
 
