@@ -785,4 +785,24 @@ class MultiTreeNodeTest extends TestCase
             $tree['_middlewareList'][0]->handler($request, $next)
         );
     }
+
+    function testDynamicPathParams()
+    {
+        $request = $this->createMock(Request::class);
+
+        $controller = $this->createController(1);
+        $controller1 = $this->createController(2);
+
+        $this->multiTreeNode->registerController('/dir/:id/option1', $controller);
+        $this->multiTreeNode->registerController('/dir/:other/option2', $controller1);
+
+        $this->assertEquals(
+            "something",
+            $this->multiTreeNode->findControllerNode('/dir/something/option1', RequestMethod::GET)->getRequest()->params->id
+        );
+        $this->assertEquals(
+            "something",
+            $this->multiTreeNode->findControllerNode('/dir/something/option2', RequestMethod::GET)->getRequest()->params->other
+        );
+    }
 }

@@ -15,6 +15,7 @@ class Request
     public ?object $file = null;
     public ?object $session = null;
     public ?object $cookie = null;
+    public ?object $params = null;
 
 
     // public ?object $attachment = null;
@@ -31,6 +32,15 @@ class Request
         $this->parseQuery();
         $this->parseBody();
         $this->registerRequestSessionAndCookie();
+    }
+
+    public function addParam($key, $value): void
+    {
+        if (!$this->params) {
+            $this->params = (object) [$key => $value];
+        } else {
+            $this->params->{$key} = $value;
+        }
     }
 
     // public function checkIfMatch($route)
@@ -77,7 +87,9 @@ class Request
 
     private function registerRequestMethod(): void
     {
-        $this->requestMethod = RequestMethod::getRequestMethodFrom($_SERVER['REQUEST_METHOD']) ?? RequestMethod::GET;
+        $this->requestMethod =
+            RequestMethod::getRequestMethodFrom($_SERVER['REQUEST_METHOD'] ?? null)
+            ?? RequestMethod::GET;
     }
 
     private function registerRequestUri(): void
@@ -114,7 +126,9 @@ class Request
 
     private function parseBody(): void
     {
-        $this->post = $this->requestMethod != RequestMethod::GET ? $this->read_post() : false;
+        $this->post =
+            $this->requestMethod != RequestMethod::GET ?
+            $this->read_post() : (object) [];
         $this->file = count($_FILES) ? (object)$_FILES : null;
     }
 

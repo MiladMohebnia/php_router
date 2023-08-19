@@ -14,8 +14,11 @@ enum RequestMethod: string
     case CONNECT = 'CONNECT';
     case TRACE = 'TRACE';
 
-    public static function getRequestMethodFrom(string $method): self
+    public static function getRequestMethodFrom(?string $method): self
     {
+        if ($method === null) {
+            return self::GET;
+        }
         $method = strtoupper($method);
         return match ($method) {
             'GET' => self::GET,
