@@ -18,7 +18,7 @@ class MultiTreeNode
     private array $middlewareList = [];
 
     /** array<RequestMethod, Controller> $middlewareList */
-    private array $controller = [];
+    private array $controllerList = [];
 
     /** @var array<string, MultiTreeNode> $dynamicPathNodeList */
     private array $dynamicPathNodeList = [];
@@ -90,7 +90,7 @@ class MultiTreeNode
     public function bindController(Controller $controller): void
     {
         $requestMethod = $controller->requestMethod()->value;
-        $this->controller[$requestMethod] = $controller;
+        $this->controllerList[$requestMethod] = $controller;
     }
 
     public function addMiddleware(Middleware $middleware): void
@@ -107,8 +107,8 @@ class MultiTreeNode
     public function getController(
         RequestMethod $requestMethod
     ) {
-        if (isset($this->controller[$requestMethod->value])) {
-            return $this->controller[$requestMethod->value];
+        if (isset($this->controllerList[$requestMethod->value])) {
+            return $this->controllerList[$requestMethod->value];
         }
         throw new ControllerNotFound('');
     }
@@ -121,14 +121,14 @@ class MultiTreeNode
         $path = $this->pathFormatter($path);
         $explodedPath = explode("/", $path);
 
-        if ($path === "" && isset($this->controller[$requestMethod->value])) {
-            return $this->controller[$requestMethod->value];
+        if ($path === "" && isset($this->controllerList[$requestMethod->value])) {
+            return $this->controllerList[$requestMethod->value];
         }
 
         $childNodePath = array_shift($explodedPath);
         $newPath = implode("/", $explodedPath);
 
-        if ($path === "" && !isset($this->controller[$requestMethod->value])) {
+        if ($path === "" && !isset($this->controllerList[$requestMethod->value])) {
             return $this->controllerNotFoundIfNeeded($path, $childMethod);
         }
         if (!isset($this->childNodes[$childNodePath])) {
@@ -152,29 +152,27 @@ class MultiTreeNode
     }
 
     public function findControllerNode(
-        string $path,
-        RequestMethod $requestMethod,
+        Request $request,
+        string $subPath = null,
         bool $childMethod = false,
         array $parentMiddlewareList = [],
-        Request $request = null
     ): self | false {
-        if (!$childMethod) {
-            $request = new Request();
-        }
         $this->request = $request;
-        $path = $this->pathFormatter($path);
+        $requestMethod = $request->getRequestMethod();
+        $subPath = $subPath ?: $request->requestUri;
+        $path = $this->pathFormatter($subPath);
         $explodedPath = explode("/", $path);
 
-        if ($path === "" && isset($this->controller[$requestMethod->value])) {
-            $node = clone $this;
-            $node->mergeParentMiddlewareList($parentMiddlewareList);
-            return $node;
+
+        if ($path === "" && isset($this->controllerList[$requestMethod->value])) {
+            $this->mergeParentMiddlewareList($parentMiddlewareList);
+            return $this;
         }
 
         $childNodePath = array_shift($explodedPath);
         $newPath = implode("/", $explodedPath);
 
-        if ($path === "" && !isset($this->controller[$requestMethod->value])) {
+        if ($path === "" && !isset($this->controllerList[$requestMethod->value])) {
             return $this->controllerNotFoundIfNeeded($path, $childMethod);
         }
         $parentMiddlewareList = array_merge($parentMiddlewareList, $this->middlewareList);
@@ -186,11 +184,10 @@ class MultiTreeNode
                 $key = substr($paramKey, 1);
                 $request->addParam($key, $childNodePath);
                 $node = $node->findControllerNode(
+                    $request,
                     $newPath,
-                    $requestMethod,
                     true,
                     $parentMiddlewareList,
-                    $request
                 )
                     ?: false;
                 if (!$node) {
@@ -203,11 +200,10 @@ class MultiTreeNode
 
         return
             $this->childNodes[$childNodePath]?->findControllerNode(
+                $request,
                 $newPath,
-                $requestMethod,
                 true,
                 $parentMiddlewareList,
-                $request
             )
             ?: $this->controllerNotFoundIfNeeded($path, $childMethod);
     }
@@ -237,7 +233,7 @@ class MultiTreeNode
             $output[$key] = $node->dump();
         }
         $output['_middlewareList'] = $this->middlewareList;
-        $output['_controller'] = $this->controller;
+        $output['_controller'] = $this->controllerList;
         foreach ($this->dynamicPathNodeList as $key => $node) {
             $output['_dynamicPathNodeList'][$key] = $node->dump();
         }

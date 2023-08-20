@@ -20,6 +20,8 @@ class MultiTreeNodeTest extends TestCase
 
     private MultiTreeNode $multiTreeNode;
 
+    private Request $request;
+
     private const PATH_LIST = [
         '/' => '',
         '/index' => '',
@@ -36,6 +38,7 @@ class MultiTreeNodeTest extends TestCase
     protected function setUp(): void
     {
         $this->multiTreeNode = new MultiTreeNode;
+        $this->request = new Request;
     }
 
     private function createMiddleware(string|int $handlerResponse = 0): Middleware
@@ -520,16 +523,18 @@ class MultiTreeNodeTest extends TestCase
             $this->assertEquals(
                 $controllerItem->handler($request),
                 $this->multiTreeNode->findControllerNode(
+                    $this->request,
                     $path,
-                    RequestMethod::GET
                 )->getController(RequestMethod::GET)->handler($request)
             );
         }
+
+        $this->request->setRequestMethod(requestMethod::POST);
         $this->assertEquals(
             $controller2->handler($request),
             $this->multiTreeNode->findControllerNode(
+                $this->request,
                 'so/action5',
-                RequestMethod::POST
             )->getController(RequestMethod::POST)->handler($request)
         );
     }
@@ -568,8 +573,8 @@ class MultiTreeNodeTest extends TestCase
 
         $this->multiTreeNode->bindGroup($group);
         $nodeMiddleware = $this->multiTreeNode->findControllerNode(
+            $this->request,
             '/group2/action1',
-            RequestMethod::GET
         )->getMiddlewareList();
 
         $this->assertEquals(2, count($nodeMiddleware));
@@ -585,8 +590,8 @@ class MultiTreeNodeTest extends TestCase
         );
 
         $nodeMiddleware = $this->multiTreeNode->findControllerNode(
+            $this->request,
             '/action1',
-            RequestMethod::GET
         )->getMiddlewareList();
 
         $this->assertEquals(1, count($nodeMiddleware));
@@ -596,8 +601,8 @@ class MultiTreeNodeTest extends TestCase
         );
 
         $nodeMiddleware = $this->multiTreeNode->findControllerNode(
+            $this->request,
             'so/sub/action1',
-            RequestMethod::GET
         )->getMiddlewareList();
 
         $this->assertEquals(3, count($nodeMiddleware));
@@ -615,8 +620,8 @@ class MultiTreeNodeTest extends TestCase
         );
 
         $nodeMiddleware = $this->multiTreeNode->findControllerNode(
+            $this->request,
             'so/action5',
-            RequestMethod::GET
         )->getMiddlewareList();
 
         $this->assertEquals(2, count($nodeMiddleware));
@@ -658,8 +663,8 @@ class MultiTreeNodeTest extends TestCase
         $this->multiTreeNode->bindGroup($group2);
 
         $nodeMiddleware = $this->multiTreeNode->findControllerNode(
+            $this->request,
             '/action1',
-            RequestMethod::GET
         )->getMiddlewareList();
 
         $this->assertEquals(2, count($nodeMiddleware));
@@ -703,8 +708,8 @@ class MultiTreeNodeTest extends TestCase
         $this->multiTreeNode->bindGroup($group2);
 
         $node = $this->multiTreeNode->findControllerNode(
+            $this->request,
             '/action1',
-            RequestMethod::GET
         );
         $nodeMiddleware = $node->getMiddlewareList();
         $this->assertEquals(
@@ -724,8 +729,8 @@ class MultiTreeNodeTest extends TestCase
         );
 
         $node = $this->multiTreeNode->findControllerNode(
+            $this->request,
             '/somethingDynamic',
-            RequestMethod::GET
         );
         $nodeMiddleware = $node->getMiddlewareList();
         $this->assertEquals(
@@ -798,11 +803,11 @@ class MultiTreeNodeTest extends TestCase
 
         $this->assertEquals(
             "something",
-            $this->multiTreeNode->findControllerNode('/dir/something/option1', RequestMethod::GET)->getRequest()->params->id
+            $this->multiTreeNode->findControllerNode($this->request, '/dir/something/option1')->getRequest()->params->id
         );
         $this->assertEquals(
             "something",
-            $this->multiTreeNode->findControllerNode('/dir/something/option2', RequestMethod::GET)->getRequest()->params->other
+            $this->multiTreeNode->findControllerNode($this->request, '/dir/something/option2')->getRequest()->params->other
         );
     }
 }

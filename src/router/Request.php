@@ -16,12 +16,7 @@ class Request
     public ?object $session = null;
     public ?object $cookie = null;
     public ?object $params = null;
-
-
-    // public ?object $attachment = null;
-    // public bool $hashMatch = false;
-    // public string $request;
-    // public string $requestHash;
+    public ?object $attachment = null;
 
     function __construct()
     {
@@ -43,53 +38,30 @@ class Request
         }
     }
 
-    // public function checkIfMatch($route)
-    // {
-    //     if ($this->hashMatch) {
-    //         return false;
-    //     }
-    //     $route = $this->routeToRegex($route);
-    //     if ($this->checkIfHashMatch($route)) {
-    //         $this->hashMatch = true;
-    //         return true;
-    //     }
-    //     if ($this->checkIfRegexMatchAndParseInputParams($route)) {
-    //         return true;
-    //     }
-    //     return false;
-    // }
+    public function getRequestMethod(): RequestMethod
+    {
+        return $this->requestMethod;
+    }
 
-    // public function checkIfMatch_alias($route)
-    // {
-    //     if ($this->checkIfMatch($route)) {
-    //         return true;
-    //     }
-    //     if ($route[strlen($route) - 1] != '/') {
-    //         $route .= '/';
-    //     }
-    //     $route .= '.*';
-    //     return $this->checkIfMatch($route);
-    // }
+    public function attach(array $data): self
+    {
+        $attachment = (array) $this->attachment;
+        $attachment += $data;
+        $this->attachment = (object) $attachment;
+        return $this;
+    }
 
-    // public function checkIfHashMatch($route)
-    // {
-    //     $route = str_replace('(\/|)', '\/', $route);
-    //     return $this->requestHash == md5($route);
-    // }
-
-    // public function attach(array $data): self
-    // {
-    //     $attachment = (array) $this->attachment;
-    //     $attachment += $data;
-    //     $this->attachment = (object) $attachment;
-    //     return $this;
-    // }
+    public function setRequestMethod(RequestMethod $requestMethod): void
+    {
+        $this->requestMethod = $requestMethod;
+    }
 
     private function registerRequestMethod(): void
     {
-        $this->requestMethod =
+        $this->setRequestMethod(
             RequestMethod::getRequestMethodFrom($_SERVER['REQUEST_METHOD'] ?? null)
-            ?? RequestMethod::GET;
+                ?? RequestMethod::GET
+        );
     }
 
     private function registerRequestUri(): void
@@ -99,28 +71,16 @@ class Request
 
     private function registerRequestPathAndQuery(): void
     {
-        $this->path = parse_url($this->requestUri)['path'];
+        $this->path = parse_url($this->requestUri)['path'] ?? '';
         $this->query = parse_url($this->requestUri)['query'] ?? '';
     }
-
-    // private function registerRequestRequestAndRequestHash(): void
-    // {
-    //     $url_path = $this->path;
-    //     if (strlen($url_path) == 0 || $url_path[\strlen($url_path) - 1] != '/') {
-    //         $url_path .= '/';
-    //     }
-    //     // $this->request = $url_path;
-    //     $url_path = str_replace('/', '\/', $url_path);
-    //     // $this->requestHash = md5($url_path);
-    // }
 
     private function parseQuery(): void
     {
         $this->get  = count($_GET) ? (object)$_GET : null;
-        if ($this->get === null) {
-            if ($this->query != '') {
-                //parseQuery here
-            }
+        if ($this->get === null && $this->query != '') {
+            parse_str($this->query, $result);
+            $this->get = (object)$result;
         }
     }
 
@@ -164,33 +124,4 @@ class Request
         }
         return null;
     }
-
-    // private function routeToRegex($route)
-    // {
-
-    //     // make sure the path starts and stop with slash '/'
-    //     if ($route == '' || $route[0] != '/') {
-    //         $route = '/' . $route;
-    //     }
-    //     if ($route[strlen($route) - 1] != '/') {
-    //         $route .= '/';
-    //     }
-    //     $route = RegexName::replace($route);
-
-    //     // handling last slash situations with optional slash at the end of route (path)
-    //     $route = substr($route, 0, strlen($route) - 1) . '(/|)';
-
-    //     // replace all slashes
-    //     $route =  str_replace('/', '\/', $route);
-    //     return $route;
-    // }
-
-    // private function checkIfRegexMatchAndParseInputParams($route)
-    // {
-    //     if (preg_match('/^' . $route . '$/', $this->request, $matchList)) {
-    //         $this->param = (object) $matchList;
-    //         return true;
-    //     }
-    //     return false;
-    // }
 }
