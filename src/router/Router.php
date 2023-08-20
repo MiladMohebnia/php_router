@@ -55,9 +55,20 @@ class Router
                     return $middlewareList[$i]->handler($request, $next);
                 };
             }
-            echo $next($request);
+            $response = $next($request);
         } catch (ControllerNotFound $e) {
-            echo "404";
+            $response = $e->showErrorPage();
+        }
+        self::showResponse($response);
+    }
+
+    static function showResponse(string|array|object $response)
+    {
+        if (is_string($response)) {
+            echo $response;
+        } else {
+            @header('Content-Type: application/json');
+            echo json_encode($response);
         }
     }
 

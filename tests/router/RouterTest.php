@@ -5,6 +5,7 @@ namespace miladmTest\router;
 use miladm\router\Router;
 use miladm\router\Group;
 use miladm\router\Controller;
+use miladm\router\exceptions\ControllerNotFound;
 use miladm\router\interface\Middleware;
 use miladm\router\Request;
 use miladm\router\RequestMethod;
@@ -317,5 +318,20 @@ class RouterTest extends TestCase
         $router::run();
         $result = ob_get_clean();
         $this->assertEquals('sampleValue', $result);
+    }
+
+    public function testControllerNotFound()
+    {
+        $router = new Router;
+
+        ob_start();
+        $router::run();
+        $result = ob_get_clean();
+
+        $exception = new ControllerNotFound("");
+        $this->assertEquals(
+            json_encode($exception->showErrorPage()),
+            $result
+        );
     }
 }

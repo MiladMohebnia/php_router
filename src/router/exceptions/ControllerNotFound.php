@@ -11,4 +11,10 @@ class ControllerNotFound extends Exception
         $message = "no controller found for path: $path";
         parent::__construct($message, 404);
     }
+
+    public function showErrorPage()
+    {
+        http_response_code(404);
+        return ['message' => 'page not found', 'error_code' => 404];
+    }
 }
