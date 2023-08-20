@@ -106,7 +106,7 @@ class MultiTreeNode
 
     public function getController(
         RequestMethod $requestMethod
-    ) {
+    ): Controller {
         if (isset($this->controllerList[$requestMethod->value])) {
             return $this->controllerList[$requestMethod->value];
         }
@@ -159,10 +159,9 @@ class MultiTreeNode
     ): self | false {
         $this->request = $request;
         $requestMethod = $request->getRequestMethod();
-        $subPath = $subPath ?: $request->requestUri;
+        $subPath = $subPath !== null ? $subPath : $request->path;
         $path = $this->pathFormatter($subPath);
         $explodedPath = explode("/", $path);
-
 
         if ($path === "" && isset($this->controllerList[$requestMethod->value])) {
             $this->mergeParentMiddlewareList($parentMiddlewareList);
@@ -171,7 +170,6 @@ class MultiTreeNode
 
         $childNodePath = array_shift($explodedPath);
         $newPath = implode("/", $explodedPath);
-
         if ($path === "" && !isset($this->controllerList[$requestMethod->value])) {
             return $this->controllerNotFoundIfNeeded($path, $childMethod);
         }

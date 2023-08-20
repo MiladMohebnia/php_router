@@ -95,7 +95,7 @@ class Request
     private function registerRequestSessionAndCookie(): void
     {
         if (session_status() == PHP_SESSION_NONE) {
-            session_start();
+            @session_start();
         }
         if (isset($_SESSION)) {
             $this->session = count($_SESSION) ? (object)$_SESSION : null;

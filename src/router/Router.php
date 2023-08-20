@@ -3,8 +3,10 @@
 namespace miladm\router;
 
 use miladm\router\Controller;
+use miladm\router\exceptions\ControllerNotFound;
 use miladm\router\Group;
 use miladm\router\interface\Middleware;
+use miladm\router\interface\UseMiddleware;
 
 class Router
 {
@@ -37,6 +39,26 @@ class Router
 
     static function run()
     {
+        try {
+            $controllerNode = self::getTree()->findControllerNode(new Request);
+            $request = $controllerNode->getRequest();
+            $middlewareList = $controllerNode->getMiddlewareList();
+            $controller = $controllerNode->getController($request->getRequestMethod());
+            if ($controller instanceof UseMiddleware) {
+                $middlewareList = array_merge($middlewareList, $controller->middlewareList());
+            }
+            $next = function ($request) use ($controller) {
+                return $controller->handler($request);
+            };
+            for ($i = count($middlewareList) - 1; $i >= 0; $i--) {
+                $next = function ($request) use ($next, $middlewareList, $i) {
+                    return $middlewareList[$i]->handler($request, $next);
+                };
+            }
+            echo $next($request);
+        } catch (ControllerNotFound $e) {
+            echo "404";
+        }
     }
 
     static function dump(): array
