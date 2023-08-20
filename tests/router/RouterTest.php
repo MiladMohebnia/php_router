@@ -19,6 +19,9 @@ class RouterTest extends TestCase
 
     protected function setUp(): void
     {
+        $_POST = [];
+        $_SERVER = [];
+        $_FILES = [];
         Router::reset();
     }
 
