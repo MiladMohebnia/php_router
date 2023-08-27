@@ -107,12 +107,15 @@ class MultiTreeNodeTest extends TestCase
 
     function testPathNames_controller()
     {
-
         $controller = $this->createController();
         foreach (self::PATH_LIST as $path => $expectation) {
             $this->multiTreeNode = new MultiTreeNode;
             $this->multiTreeNode->registerController($path, $controller);
-            $this->assertArrayHasKey($expectation, $this->multiTreeNode->dump(), json_encode($this->multiTreeNode->dump()));
+            if ('' !== $expectation) {
+                $this->assertArrayHasKey($expectation, $this->multiTreeNode->dump(), json_encode($this->multiTreeNode->dump()));
+            } else {
+                $this->assertEquals(1, count($this->multiTreeNode->dump()['_controller']));
+            }
         }
     }
 
@@ -143,7 +146,11 @@ class MultiTreeNodeTest extends TestCase
 
         $this->multiTreeNode->bindGroup($group);
         foreach (self::PATH_LIST as $path => $expectation) {
-            $this->assertArrayHasKey($expectation, $this->multiTreeNode->dump(), json_encode($this->multiTreeNode->dump()));
+            if ('' !== $expectation) {
+                $this->assertArrayHasKey($expectation, $this->multiTreeNode->dump(), json_encode($this->multiTreeNode->dump()));
+            } else {
+                $this->assertEquals(1, count($this->multiTreeNode->dump()['_controller']));
+            }
         }
     }
 
@@ -177,7 +184,7 @@ class MultiTreeNodeTest extends TestCase
         $this->assertEquals([
             RequestMethod::GET->value => $controller,
             RequestMethod::POST->value => $controller
-        ], $tree['']['_controller'], json_encode($tree['']['_controller']));
+        ], $tree['_controller'], json_encode($tree['_controller']));
     }
 
     function testGetController()

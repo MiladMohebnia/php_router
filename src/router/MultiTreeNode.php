@@ -72,19 +72,23 @@ class MultiTreeNode
     public function registerController(string $path, Controller $controller): void
     {
         $path = $this->pathFormatter($path);
-        if (strpos($path, "/") > 0) {
-            $explodedPath = explode("/", $path);
-            $path = array_shift($explodedPath);
-            $restOfPath = implode("/", $explodedPath);
-        }
-        $newNode = $this->getNodeOrCreateNew($path);
-        if (isset($restOfPath)) {
-            $newNode->registerController($restOfPath, $controller);
+        if ($path === '') {
+            $this->bindController($controller);
         } else {
-            $newNode->bindController($controller);
-        }
+            if (strpos($path, "/") > 0) {
+                $explodedPath = explode("/", $path);
+                $path = array_shift($explodedPath);
+                $restOfPath = implode("/", $explodedPath);
+            }
+            $newNode = $this->getNodeOrCreateNew($path);
+            if (isset($restOfPath)) {
+                $newNode->registerController($restOfPath, $controller);
+            } else {
+                $newNode->bindController($controller);
+            }
 
-        $this->registerNode($path, $newNode);
+            $this->registerNode($path, $newNode);
+        }
     }
 
     public function bindController(Controller $controller): void
