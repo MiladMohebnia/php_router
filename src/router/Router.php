@@ -10,28 +10,42 @@ use miladm\router\interface\UseMiddleware;
 
 class Router
 {
+    private const CACHE_FILE = 'routes.tree.cache.igb';
+    private static bool $cacheLoaded = false;
+
     private static ?MultiTreeNode $tree;
 
     static function middleware(Middleware $middleware): void
     {
-        self::getTree()->addMiddleware($middleware);
+        if (!self::$cacheLoaded) {
+            self::getTree()->addMiddleware($middleware);
+        }
     }
 
     static function group(string $path, Group $group): void
     {
-        $indexRoute = self::getTree();
-        $indexRoute->registerSubGroup($path, $group);
+        if (!self::$cacheLoaded) {
+            $indexRoute = self::getTree();
+            $indexRoute->registerSubGroup($path, $group);
+        }
     }
 
     static function controller(string $path, Controller $controller): void
     {
-        $indexRoute = self::getTree();
-        $indexRoute->registerController($path, $controller);
+        if (!self::$cacheLoaded) {
+            $indexRoute = self::getTree();
+            $indexRoute->registerController($path, $controller);
+        }
     }
 
     private static function getTree(): MultiTreeNode
     {
         if (!isset(self::$tree)) {
+            if (extension_loaded('igbinary') && file_exists(self::d)) {
+                self::$tree = \igbinary_unserialize(file_get_contents(self::CACHE_FILE));
+                self::$cacheLoaded = true;
+                return self::$tree;
+            }
             self::reset();
         }
         return self::$tree;
@@ -80,5 +94,17 @@ class Router
     static function reset(): void
     {
         self::$tree = new MultiTreeNode;
+    }
+
+    static function cacheAvailable(): bool
+    {
+        return extension_loaded('igbinary') && file_exists(self::CACHE_FILE);
+    }
+
+    static function cache(): void
+    {
+        if (extension_loaded('igbinary')) {
+            file_put_contents(self::CACHE_FILE, \igbinary_serialize(self::getTree()));
+        }
     }
 }
