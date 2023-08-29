@@ -41,7 +41,7 @@ class Router
     private static function getTree(): MultiTreeNode
     {
         if (!isset(self::$tree)) {
-            if (extension_loaded('igbinary') && file_exists(self::d)) {
+            if (extension_loaded('igbinary') && file_exists(self::CACHE_FILE)) {
                 self::$tree = \igbinary_unserialize(file_get_contents(self::CACHE_FILE));
                 self::$cacheLoaded = true;
                 return self::$tree;
