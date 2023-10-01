@@ -11,9 +11,15 @@ use miladm\router\interface\UseMiddleware;
 class Router
 {
     private const CACHE_FILE = 'routes.tree.cache.igb';
+    private static bool $activateCaching = false;
     private static bool $cacheLoaded = false;
 
     private static ?MultiTreeNode $tree;
+
+    static function activateCaching(bool $state = true): void
+    {
+        self::$activateCaching = $state;
+    }
 
     static function middleware(Middleware $middleware): void
     {
@@ -41,7 +47,7 @@ class Router
     private static function getTree(): MultiTreeNode
     {
         if (!isset(self::$tree)) {
-            if (extension_loaded('igbinary') && file_exists(self::CACHE_FILE)) {
+            if (self::$activateCaching && extension_loaded('igbinary') && file_exists(self::CACHE_FILE)) {
                 self::$tree = \igbinary_unserialize(file_get_contents(self::CACHE_FILE));
                 self::$cacheLoaded = true;
                 return self::$tree;
