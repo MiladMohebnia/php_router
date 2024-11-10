@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace miladmTest;
+namespace Tests;
 
-use miladm;
-use miladm\Group;
-use miladm\Controller;
-use miladm\exceptions\ControllerNotFound;
-use miladm\interface\Middleware;
-use miladm\Request;
-use miladm\RequestMethod;
-use miladmTest\stubs\ControllerWithMiddleware;
-use miladmTest\stubs\GroupWithMiddleware;
+use Router\Group;
+use Router\Controller;
+use Router\exceptions\ControllerNotFound;
+use Router\interface\Middleware;
+use Router\Request;
+use Router\RequestMethod;
+use Tests\stubs\ControllerWithMiddleware;
+use Tests\stubs\GroupWithMiddleware;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Router\Router;
 
-class RouterTest extends TestCase
+class Tests extends TestCase
 {
 
     protected function setUp(): void

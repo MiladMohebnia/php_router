@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace miladm;
+namespace Router;
 
-use miladm\RequestMethod;
-use miladm\Request;
+use Router\RequestMethod;
+use Router\Request;
 
 abstract class Controller
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace miladm;
+namespace Router;
 
 enum RequestMethod: string
 {

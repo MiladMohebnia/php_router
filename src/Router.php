@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace miladm;
+namespace Router;
 
-use miladm\Controller;
-use miladm\exceptions\ControllerNotFound;
-use miladm\Group;
-use miladm\interface\Middleware;
-use miladm\interface\UseMiddleware;
+use Router\Controller;
+use Router\exceptions\ControllerNotFound;
+use Router\Group;
+use Router\interface\Middleware;
+use Router\interface\UseMiddleware;
 
 class Router
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace miladm\exceptions;
+namespace Router\exceptions;
 
 use Exception;
 

@@ -10,8 +10,8 @@
   ],
   "autoload": {
     "psr-4": {
-      "miladm\\": "src/",
-      "miladmTest\\": "tests/"
+      "Router\\": "src/",
+      "Tests\\": "tests/"
     }
   },
   "require-dev": {

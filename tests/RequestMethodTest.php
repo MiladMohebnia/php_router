@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace miladmTest;
+namespace Tests;
 
-use miladm\RequestMethod;
+use Router\RequestMethod;
 use PHPUnit\Framework\TestCase;
 
 class RequestMethodTest extends TestCase

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace miladm;
+namespace Router;
 
-use miladm\exceptions\ControllerNotFound;
-use miladm\exceptions\InvalidControllerType;
-use miladm\RequestMethod;
-use miladm\Group;
-use miladm\interface\Middleware;
-use miladm\interface\UseMiddleware;
+use Router\exceptions\ControllerNotFound;
+use Router\exceptions\InvalidControllerType;
+use Router\RequestMethod;
+use Router\Group;
+use Router\interface\Middleware;
+use Router\interface\UseMiddleware;
 
 class MultiTreeNode
 {

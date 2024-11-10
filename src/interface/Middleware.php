@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace miladm\interface;
+namespace Router\interface;
 
-use miladm\Request;
+use Router\Request;
 
 interface Middleware
 {

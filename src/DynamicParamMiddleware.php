@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-// namespace miladm;
+// namespace Router;
 
-// use miladm\interface\Middleware;
+// use Router\interface\Middleware;
 
 // class DynamicParamMiddleware implements Middleware
 // {

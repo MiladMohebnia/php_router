@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace miladmTest;
+namespace Tests;
 
-use miladm\Request;
-use miladm\Controller;
-use miladm\exceptions\ControllerNotFound;
-use miladm\exceptions\InvalidControllerType;
-use miladm\Group;
-use miladm\interface\Middleware;
-use miladm\MultiTreeNode;
-use miladm\RequestMethod;
-use miladmTest\stubs\ControllerWithMiddleware;
-use miladmTest\stubs\GroupWithMiddleware;
+use Router\Request;
+use Router\Controller;
+use Router\exceptions\ControllerNotFound;
+use Router\exceptions\InvalidControllerType;
+use Router\Group;
+use Router\interface\Middleware;
+use Router\MultiTreeNode;
+use Router\RequestMethod;
+use Tests\stubs\ControllerWithMiddleware;
+use Tests\stubs\GroupWithMiddleware;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 

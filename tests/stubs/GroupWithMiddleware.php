@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace miladmTest\stubs;
+namespace Tests\stubs;
 
-use miladm\Group;
-use miladm\interface\UseMiddleware;
+use Router\Group;
+use Router\interface\UseMiddleware;
 
 abstract class GroupWithMiddleware extends Group implements UseMiddleware {}

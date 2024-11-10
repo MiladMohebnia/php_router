@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace miladmTest\stubs;
+namespace Tests\stubs;
 
-use miladm\Controller;
-use miladm\interface\UseMiddleware;
+use Router\Controller;
+use Router\interface\UseMiddleware;
 
 abstract class ControllerWithMiddleware extends Controller implements UseMiddleware {}

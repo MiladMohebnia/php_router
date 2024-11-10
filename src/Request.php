@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace miladm;
+namespace Router;
 
-use miladm\RequestMethod;
+use Router\RequestMethod;
 
 class Request
 {

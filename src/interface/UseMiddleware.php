@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace miladm\interface;
+namespace Router\interface;
 
 interface UseMiddleware
 {
