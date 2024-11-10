@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace miladmTest\router;
+namespace miladmTest;
 
 use InvalidArgumentException;
 use miladm\Request;

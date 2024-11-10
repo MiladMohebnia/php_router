@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace miladmTest\router;
+namespace miladmTest;
 
 use miladm\RequestMethod;
 use PHPUnit\Framework\TestCase;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace miladmTest\router\stubs;
+namespace miladmTest\stubs;
 
 use miladm\Controller;
 use miladm\interface\UseMiddleware;

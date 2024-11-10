@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace miladmTest\router;
+namespace miladmTest;
 
 use miladm\Request;
 use miladm\Controller;
@@ -12,8 +12,8 @@ use miladm\Group;
 use miladm\interface\Middleware;
 use miladm\MultiTreeNode;
 use miladm\RequestMethod;
-use miladmTest\router\stubs\ControllerWithMiddleware;
-use miladmTest\router\stubs\GroupWithMiddleware;
+use miladmTest\stubs\ControllerWithMiddleware;
+use miladmTest\stubs\GroupWithMiddleware;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
