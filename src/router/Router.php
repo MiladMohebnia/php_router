@@ -64,21 +64,26 @@ class Router
             $request = $controllerNode->getRequest();
             $middlewareList = $controllerNode->getMiddlewareList();
             $controller = $controllerNode->getController($request->getRequestMethod());
+
             if ($controller instanceof UseMiddleware) {
                 $middlewareList = array_merge($middlewareList, $controller->middlewareList());
             }
+
             $next = function ($request) use ($controller) {
                 return $controller->handler($request);
             };
-            for ($i = count($middlewareList) - 1; $i >= 0; $i--) {
-                $next = function ($request) use ($next, $middlewareList, $i) {
-                    return $middlewareList[$i]->handler($request, $next);
+
+            foreach (array_reverse($middlewareList) as $middleware) {
+                $next = function ($request) use ($next, $middleware) {
+                    return $middleware->handler($request, $next);
                 };
             }
+
             $response = $next($request);
         } catch (ControllerNotFound $e) {
             $response = $e->showErrorPage();
         }
+
         self::showResponse($response);
     }
 

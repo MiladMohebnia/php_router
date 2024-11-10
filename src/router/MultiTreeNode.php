@@ -14,10 +14,10 @@ class MultiTreeNode
     /** @var array<string, MultiTreeNode> $childNodes */
     private array $childNodes = [];
 
-    /** array<Middleware> $middlewareList */
+    /** @var array<Middleware> $middlewareList */
     private array $middlewareList = [];
 
-    /** array<RequestMethod, Controller> $middlewareList */
+    /** @var array<RequestMethod, Controller> $middlewareList */
     private array $controllerList = [];
 
     /** @var array<string, MultiTreeNode> $dynamicPathNodeList */
@@ -32,17 +32,18 @@ class MultiTreeNode
             $this->bindGroup($group);
             return;
         }
-        if (strpos($path, "/") > 0) {
-            $explodedPath = explode("/", $path);
-            $path = array_shift($explodedPath);
-            $restOfPath = implode("/", $explodedPath);
-        }
+
+        $explodedPath = explode("/", $path);
+        $path = array_shift($explodedPath);
+        $restOfPath = implode("/", $explodedPath);
+
         $newNode = $this->getNodeOrCreateNew($path);
-        if (isset($restOfPath)) {
+        if ($restOfPath !== '') {
             $newNode->registerSubGroup($restOfPath, $group);
         } else {
             $newNode->bindGroup($group);
         }
+
         $this->registerNode($path, $newNode);
     }
 
