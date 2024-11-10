@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace miladmTest\router;
 
 use InvalidArgumentException;
-use miladm\router\Request;
-use miladm\router\RequestMethod;
+use miladm\Request;
+use miladm\RequestMethod;
 use PHPUnit\Framework\TestCase;
 
 class RequestTest extends TestCase

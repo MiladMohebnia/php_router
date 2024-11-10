@@ -1,9 +1,11 @@
 <?php
 
-namespace miladm\router;
+declare(strict_types=1);
 
-use miladm\router\RequestMethod;
-use miladm\router\Request;
+namespace miladm;
+
+use miladm\RequestMethod;
+use miladm\Request;
 
 abstract class Controller
 {

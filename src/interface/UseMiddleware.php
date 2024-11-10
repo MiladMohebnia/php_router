@@ -1,6 +1,8 @@
 <?php
 
-namespace miladm\router\interface;
+declare(strict_types=1);
+
+namespace miladm\interface;
 
 interface UseMiddleware
 {

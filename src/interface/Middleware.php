@@ -1,8 +1,10 @@
 <?php
 
-namespace miladm\router\interface;
+declare(strict_types=1);
 
-use miladm\router\Request;
+namespace miladm\interface;
+
+use miladm\Request;
 
 interface Middleware
 {

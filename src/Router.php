@@ -1,12 +1,14 @@
 <?php
 
-namespace miladm\router;
+declare(strict_types=1);
 
-use miladm\router\Controller;
-use miladm\router\exceptions\ControllerNotFound;
-use miladm\router\Group;
-use miladm\router\interface\Middleware;
-use miladm\router\interface\UseMiddleware;
+namespace miladm;
+
+use miladm\Controller;
+use miladm\exceptions\ControllerNotFound;
+use miladm\Group;
+use miladm\interface\Middleware;
+use miladm\interface\UseMiddleware;
 
 class Router
 {

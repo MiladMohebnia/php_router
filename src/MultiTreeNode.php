@@ -1,13 +1,15 @@
 <?php
 
-namespace miladm\router;
+declare(strict_types=1);
 
-use miladm\router\exceptions\ControllerNotFound;
-use miladm\router\exceptions\InvalidControllerType;
-use miladm\router\RequestMethod;
-use miladm\router\Group;
-use miladm\router\interface\Middleware;
-use miladm\router\interface\UseMiddleware;
+namespace miladm;
+
+use miladm\exceptions\ControllerNotFound;
+use miladm\exceptions\InvalidControllerType;
+use miladm\RequestMethod;
+use miladm\Group;
+use miladm\interface\Middleware;
+use miladm\interface\UseMiddleware;
 
 class MultiTreeNode
 {

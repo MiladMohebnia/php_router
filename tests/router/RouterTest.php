@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace miladmTest\router;
 
-use miladm\router\Router;
-use miladm\router\Group;
-use miladm\router\Controller;
-use miladm\router\exceptions\ControllerNotFound;
-use miladm\router\interface\Middleware;
-use miladm\router\Request;
-use miladm\router\RequestMethod;
+use miladm;
+use miladm\Group;
+use miladm\Controller;
+use miladm\exceptions\ControllerNotFound;
+use miladm\interface\Middleware;
+use miladm\Request;
+use miladm\RequestMethod;
 use miladmTest\router\stubs\ControllerWithMiddleware;
 use miladmTest\router\stubs\GroupWithMiddleware;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -112,6 +114,7 @@ class RouterTest extends TestCase
 
     public function testGroupRegistration()
     {
+        /** @var MockObject&Group $group */
         $group = $this->createMock(Group::class);
         $path = "/testGroup";
         Router::group($path, $group);

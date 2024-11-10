@@ -1,6 +1,8 @@
 <?php
 
-namespace miladm\router;
+declare(strict_types=1);
+
+namespace miladm;
 
 abstract class Group
 {
