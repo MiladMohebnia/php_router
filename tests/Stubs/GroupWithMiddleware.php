@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Tests\stubs;
+namespace Tests\Stubs;
 
 use Router\Group;
-use Router\interface\UseMiddleware;
+use Router\Interfaces\UseMiddleware;
 
 abstract class GroupWithMiddleware extends Group implements UseMiddleware {}

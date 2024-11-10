@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Router\interface;
+namespace Router\Interfaces;
 
 use Router\Request;
 

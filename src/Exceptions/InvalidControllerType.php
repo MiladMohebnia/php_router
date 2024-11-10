@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Router\exceptions;
+namespace Router\Exceptions;
 
 use Exception;
 

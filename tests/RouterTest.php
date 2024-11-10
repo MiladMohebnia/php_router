@@ -6,19 +6,18 @@ namespace Tests;
 
 use Router\Group;
 use Router\Controller;
-use Router\exceptions\ControllerNotFound;
-use Router\interface\Middleware;
+use Router\Exceptions\ControllerNotFound;
+use Router\Interfaces\Middleware;
 use Router\Request;
 use Router\RequestMethod;
-use Tests\stubs\ControllerWithMiddleware;
-use Tests\stubs\GroupWithMiddleware;
+use Tests\Stubs\ControllerWithMiddleware;
+use Tests\Stubs\GroupWithMiddleware;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Router\Router;
 
-class Tests extends TestCase
+class RouterTest extends TestCase
 {
-
     protected function setUp(): void
     {
         $_POST = [];

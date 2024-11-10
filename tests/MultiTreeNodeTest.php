@@ -6,14 +6,14 @@ namespace Tests;
 
 use Router\Request;
 use Router\Controller;
-use Router\exceptions\ControllerNotFound;
-use Router\exceptions\InvalidControllerType;
+use Router\Exceptions\ControllerNotFound;
+use Router\Exceptions\InvalidControllerType;
 use Router\Group;
-use Router\interface\Middleware;
+use Router\Interfaces\Middleware;
 use Router\MultiTreeNode;
 use Router\RequestMethod;
-use Tests\stubs\ControllerWithMiddleware;
-use Tests\stubs\GroupWithMiddleware;
+use Tests\Stubs\ControllerWithMiddleware;
+use Tests\Stubs\GroupWithMiddleware;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -166,6 +166,7 @@ class MultiTreeNodeTest extends TestCase
 
     function testMiddleware()
     {
+        /** @var Middleware $mw */
         $mw = $this->createMiddleware();
         $controller = $this->createControllerWithMiddleware(0, [$mw]);
         $this->multiTreeNode->registerController('/', $controller);
@@ -399,6 +400,7 @@ class MultiTreeNodeTest extends TestCase
         $controller = $this->createController(1);
         $controller1 = $this->createController(2);
 
+        /** @var Request $request */
         $request = $this->createMock(Request::class);
 
         $this->multiTreeNode->registerController('/dir/other', $controller);

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Router;
 
-use Router\exceptions\ControllerNotFound;
-use Router\exceptions\InvalidControllerType;
+use Router\Exceptions\ControllerNotFound;
+use Router\Exceptions\InvalidControllerType;
 use Router\RequestMethod;
 use Router\Group;
-use Router\interface\Middleware;
-use Router\interface\UseMiddleware;
+use Router\Interfaces\Middleware;
+use Router\Interfaces\UseMiddleware;
 
 class MultiTreeNode
 {
