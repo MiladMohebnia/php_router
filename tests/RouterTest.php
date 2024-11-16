@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests;
 
-use Router\Group;
-use Router\Controller;
+use Router\AbstractGroup;
+use Router\AbstractController;
 use Router\Exceptions\ControllerNotFound;
 use Router\Interfaces\Middleware;
 use Router\Request;
@@ -59,14 +59,14 @@ class RouterTest extends TestCase
     private function createController(
         string|int $handlerResponse = 0,
         RequestMethod $requestMethod = RequestMethod::GET
-    ): Controller {
+    ): AbstractController {
 
         /** @var MockObject $controller */
-        $controller = $this->createMock(Controller::class);
+        $controller = $this->createMock(AbstractController::class);
         $controller->method('requestMethod')->willReturn($requestMethod);
         $controller->method('handler')->willReturn($handlerResponse);
 
-        /** @var Controller $controller */
+        /** @var AbstractController $controller */
         return $controller;
     }
 
@@ -86,14 +86,14 @@ class RouterTest extends TestCase
         return $controller;
     }
 
-    private function createGroup(array $controllerList = []): Group
+    private function createGroup(array $controllerList = []): AbstractGroup
     {
 
         /** @var MockObject $group */
-        $group = $this->createMock(Group::class);
+        $group = $this->createMock(AbstractGroup::class);
         $group->method('controllerList')->willReturn($controllerList);
 
-        /** @var Group $group */
+        /** @var AbstractGroup $group */
         return $group;
     }
 
@@ -113,8 +113,8 @@ class RouterTest extends TestCase
 
     public function testGroupRegistration()
     {
-        /** @var MockObject&Group $group */
-        $group = $this->createMock(Group::class);
+        /** @var MockObject&AbstractGroup $group */
+        $group = $this->createMock(AbstractGroup::class);
         $path = "/testGroup";
         Router::group($path, $group);
         $tree = Router::dump();
@@ -134,7 +134,7 @@ class RouterTest extends TestCase
     {
         $controller = $this->createController(0);
 
-        /** @var MockObject&Group $group1 */
+        /** @var MockObject&AbstractGroup $group1 */
         $group2 = $this->createGroup([]);
         $group1 = $this->createGroup([
             "/otherGroup" => $group2,
@@ -305,7 +305,7 @@ class RouterTest extends TestCase
             return $next($request);
         });
 
-        $controller = new class extends Controller
+        $controller = new class extends AbstractController
         {
             function handler(Request $request): string|int|array
             {

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Tests;
 
 use Router\Request;
-use Router\Controller;
+use Router\AbstractController;
 use Router\Exceptions\ControllerNotFound;
 use Router\Exceptions\InvalidControllerType;
-use Router\Group;
+use Router\AbstractGroup;
 use Router\Interfaces\Middleware;
 use Router\MultiTreeNode;
 use Router\RequestMethod;
@@ -56,14 +56,14 @@ class MultiTreeNodeTest extends TestCase
     private function createController(
         string|int $handlerResponse = 0,
         RequestMethod $requestMethod = RequestMethod::GET
-    ): Controller {
+    ): AbstractController {
 
         /** @var MockObject $controller */
-        $controller = $this->createMock(Controller::class);
+        $controller = $this->createMock(AbstractController::class);
         $controller->method('requestMethod')->willReturn($requestMethod);
         $controller->method('handler')->willReturn($handlerResponse);
 
-        /** @var Controller $controller */
+        /** @var AbstractController $controller */
         return $controller;
     }
 
@@ -83,14 +83,14 @@ class MultiTreeNodeTest extends TestCase
         return $controller;
     }
 
-    private function createGroup(array $controllerList = []): Group
+    private function createGroup(array $controllerList = []): AbstractGroup
     {
 
         /** @var MockObject $group */
-        $group = $this->createMock(Group::class);
+        $group = $this->createMock(AbstractGroup::class);
         $group->method('controllerList')->willReturn($controllerList);
 
-        /** @var Group $group */
+        /** @var AbstractGroup $group */
         return $group;
     }
 

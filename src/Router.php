@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Router;
 
-use Router\Controller;
+use Router\AbstractController;
 use Router\Exceptions\ControllerNotFound;
-use Router\Group;
+use Router\AbstractGroup;
 use Router\Interfaces\Middleware;
 use Router\Interfaces\UseMiddleware;
 
@@ -15,7 +15,6 @@ class Router
     private const CACHE_FILE = 'routes.tree.cache.igb';
     private static bool $activateCaching = false;
     private static bool $cacheLoaded = false;
-
     private static ?MultiTreeNode $tree;
 
     static function activateCaching(bool $state = true): void
@@ -30,7 +29,7 @@ class Router
         }
     }
 
-    static function group(string $path, Group $group): void
+    static function group(string $path, AbstractGroup $group): void
     {
         if (!self::$cacheLoaded) {
             $indexRoute = self::getTree();
@@ -38,7 +37,7 @@ class Router
         }
     }
 
-    static function controller(string $path, Controller $controller): void
+    static function controller(string $path, AbstractController $controller): void
     {
         if (!self::$cacheLoaded) {
             $indexRoute = self::getTree();

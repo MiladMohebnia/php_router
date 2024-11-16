@@ -8,5 +8,10 @@ use Router\Request;
 
 interface Middleware
 {
-    public function handler(Request $request, callable $next);
+    /**
+     * @param \Router\Request $request
+     * @param callable $next
+     * @return string|int|array<string, mixed>
+     */
+    public function handler(Request $request, callable $next): string | int | array;
 }

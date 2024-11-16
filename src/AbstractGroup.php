@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Router;
 
-abstract class Group
+abstract class AbstractGroup
 {
     /**
-     * @return array<string, Group|Controller|array<Controller>>
+     * @return array<string, AbstractGroup|AbstractController|array<AbstractController>>
      */
     abstract function controllerList(): array;
 }
