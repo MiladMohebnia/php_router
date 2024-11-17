@@ -6,7 +6,7 @@ namespace Tests;
 
 use Router\AbstractGroup;
 use Router\AbstractController;
-use Router\Exceptions\ControllerNotFound;
+// use Router\Exceptions\ControllerNotFound;
 use Router\Interfaces\Middleware;
 use Router\Request;
 use Router\RequestMethod;
@@ -47,9 +47,13 @@ class RouterTest extends TestCase
                 $this->overrideHandler = $overrideHandler;
             }
 
-            function handler(Request $request, callable $next)
+            function handler(Request $request, callable $next): array|int|string
             {
                 $callable = $this->overrideHandler;
+                $result =  $callable($request, $next);
+                if (!is_string($result) && !is_int($result) && !is_array($result)) {
+                    throw new \Exception("Middleware handler must return string, int or array");
+                }
                 return $callable($request, $next);
             }
         };
