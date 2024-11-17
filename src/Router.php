@@ -1,19 +1,20 @@
 <?php
 
-namespace miladm\router;
+declare(strict_types=1);
 
-use miladm\router\Controller;
-use miladm\router\exceptions\ControllerNotFound;
-use miladm\router\Group;
-use miladm\router\interface\Middleware;
-use miladm\router\interface\UseMiddleware;
+namespace Router;
+
+use Router\AbstractController;
+use Router\Exceptions\ControllerNotFound;
+use Router\AbstractGroup;
+use Router\Interfaces\Middleware;
+use Router\Interfaces\UseMiddleware;
 
 class Router
 {
     private const CACHE_FILE = 'routes.tree.cache.igb';
     private static bool $activateCaching = false;
     private static bool $cacheLoaded = false;
-
     private static ?MultiTreeNode $tree;
 
     static function activateCaching(bool $state = true): void
@@ -28,7 +29,7 @@ class Router
         }
     }
 
-    static function group(string $path, Group $group): void
+    static function group(string $path, AbstractGroup $group): void
     {
         if (!self::$cacheLoaded) {
             $indexRoute = self::getTree();
@@ -36,7 +37,7 @@ class Router
         }
     }
 
-    static function controller(string $path, Controller $controller): void
+    static function controller(string $path, AbstractController $controller): void
     {
         if (!self::$cacheLoaded) {
             $indexRoute = self::getTree();
@@ -64,21 +65,26 @@ class Router
             $request = $controllerNode->getRequest();
             $middlewareList = $controllerNode->getMiddlewareList();
             $controller = $controllerNode->getController($request->getRequestMethod());
+
             if ($controller instanceof UseMiddleware) {
                 $middlewareList = array_merge($middlewareList, $controller->middlewareList());
             }
+
             $next = function ($request) use ($controller) {
                 return $controller->handler($request);
             };
-            for ($i = count($middlewareList) - 1; $i >= 0; $i--) {
-                $next = function ($request) use ($next, $middlewareList, $i) {
-                    return $middlewareList[$i]->handler($request, $next);
+
+            foreach (array_reverse($middlewareList) as $middleware) {
+                $next = function ($request) use ($next, $middleware) {
+                    return $middleware->handler($request, $next);
                 };
             }
+
             $response = $next($request);
         } catch (ControllerNotFound $e) {
             $response = $e->showErrorPage();
         }
+
         self::showResponse($response);
     }
 

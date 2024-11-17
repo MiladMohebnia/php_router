@@ -1,8 +1,10 @@
 <?php
 
-// namespace miladm\router;
+declare(strict_types=1);
 
-// use miladm\router\interface\Middleware;
+// namespace Router;
+
+// use Router\interface\Middleware;
 
 // class DynamicParamMiddleware implements Middleware
 // {

@@ -1,8 +1,10 @@
 <?php
 
-namespace miladm\router;
+declare(strict_types=1);
 
-use miladm\router\RequestMethod;
+namespace Router;
+
+use Router\RequestMethod;
 
 class Request
 {
@@ -120,7 +122,7 @@ class Request
             if (strpos(strtolower($contentType), 'application/json') !== false)
                 return json_decode($input);
             else
-                return $input;
+                return (object) $input;
         }
         return null;
     }

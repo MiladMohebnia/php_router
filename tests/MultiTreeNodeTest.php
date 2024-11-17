@@ -1,17 +1,19 @@
 <?php
 
-namespace miladmTest\router;
+declare(strict_types=1);
 
-use miladm\router\Request;
-use miladm\router\Controller;
-use miladm\router\exceptions\ControllerNotFound;
-use miladm\router\exceptions\InvalidControllerType;
-use miladm\router\Group;
-use miladm\router\interface\Middleware;
-use miladm\router\MultiTreeNode;
-use miladm\router\RequestMethod;
-use miladmTest\router\stubs\ControllerWithMiddleware;
-use miladmTest\router\stubs\GroupWithMiddleware;
+namespace Tests;
+
+use Router\Request;
+use Router\AbstractController;
+use Router\Exceptions\ControllerNotFound;
+use Router\Exceptions\InvalidControllerType;
+use Router\AbstractGroup;
+use Router\Interfaces\Middleware;
+use Router\MultiTreeNode;
+use Router\RequestMethod;
+use Tests\Stubs\ControllerWithMiddleware;
+use Tests\Stubs\GroupWithMiddleware;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -54,14 +56,14 @@ class MultiTreeNodeTest extends TestCase
     private function createController(
         string|int $handlerResponse = 0,
         RequestMethod $requestMethod = RequestMethod::GET
-    ): Controller {
+    ): AbstractController {
 
         /** @var MockObject $controller */
-        $controller = $this->createMock(Controller::class);
+        $controller = $this->createMock(AbstractController::class);
         $controller->method('requestMethod')->willReturn($requestMethod);
         $controller->method('handler')->willReturn($handlerResponse);
 
-        /** @var Controller $controller */
+        /** @var AbstractController $controller */
         return $controller;
     }
 
@@ -81,14 +83,14 @@ class MultiTreeNodeTest extends TestCase
         return $controller;
     }
 
-    private function createGroup(array $controllerList = []): Group
+    private function createGroup(array $controllerList = []): AbstractGroup
     {
 
         /** @var MockObject $group */
-        $group = $this->createMock(Group::class);
+        $group = $this->createMock(AbstractGroup::class);
         $group->method('controllerList')->willReturn($controllerList);
 
-        /** @var Group $group */
+        /** @var AbstractGroup $group */
         return $group;
     }
 
@@ -164,6 +166,7 @@ class MultiTreeNodeTest extends TestCase
 
     function testMiddleware()
     {
+        /** @var Middleware $mw */
         $mw = $this->createMiddleware();
         $controller = $this->createControllerWithMiddleware(0, [$mw]);
         $this->multiTreeNode->registerController('/', $controller);
@@ -289,7 +292,7 @@ class MultiTreeNodeTest extends TestCase
     function testOverrideAndMergeGroups()
     {
         $request = $this->createMock(Request::class);
-        $next = fn () => null;
+        $next = fn() => null;
 
         $controller = $this->createController();
 
@@ -397,6 +400,7 @@ class MultiTreeNodeTest extends TestCase
         $controller = $this->createController(1);
         $controller1 = $this->createController(2);
 
+        /** @var Request $request */
         $request = $this->createMock(Request::class);
 
         $this->multiTreeNode->registerController('/dir/other', $controller);
@@ -549,7 +553,7 @@ class MultiTreeNodeTest extends TestCase
     function testGetNode_middlewarePassing()
     {
         $request = $this->createMock(Request::class);
-        $next = fn () => null;
+        $next = fn() => null;
 
         $controller = $this->createController(1);
 
@@ -647,7 +651,7 @@ class MultiTreeNodeTest extends TestCase
     function testGetNode_middlewarePassing_multipleBindingForSinglePath()
     {
         $request = $this->createMock(Request::class);
-        $next = fn () => null;
+        $next = fn() => null;
 
         $controller = $this->createController(1);
         $mw = $this->createMiddleware('hello');
@@ -690,7 +694,7 @@ class MultiTreeNodeTest extends TestCase
     function testGetNode_middlewarePassing_dynamicPath()
     {
         $request = $this->createMock(Request::class);
-        $next = fn () => null;
+        $next = fn() => null;
 
         $controller = $this->createController(1);
         $controller1 = $this->createController(2);
@@ -763,7 +767,7 @@ class MultiTreeNodeTest extends TestCase
     function testGetNode_middlewarePassing_notEffectingMainNode()
     {
         $request = $this->createMock(Request::class);
-        $next = fn () => null;
+        $next = fn() => null;
 
         $controller = $this->createController(1);
         $mw = $this->createMiddleware('hello');

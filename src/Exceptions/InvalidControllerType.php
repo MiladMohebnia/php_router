@@ -1,6 +1,8 @@
 <?php
 
-namespace miladm\router\exceptions;
+declare(strict_types=1);
+
+namespace Router\Exceptions;
 
 use Exception;
 

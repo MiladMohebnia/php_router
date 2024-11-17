@@ -1,52 +1,54 @@
 <?php
 
-namespace miladm\router;
+declare(strict_types=1);
 
-use miladm\router\exceptions\ControllerNotFound;
-use miladm\router\exceptions\InvalidControllerType;
-use miladm\router\RequestMethod;
-use miladm\router\Group;
-use miladm\router\interface\Middleware;
-use miladm\router\interface\UseMiddleware;
+namespace Router;
+
+use Router\Exceptions\ControllerNotFound;
+use Router\Exceptions\InvalidControllerType;
+use Router\RequestMethod;
+use Router\AbstractGroup;
+use Router\Interfaces\Middleware;
+use Router\Interfaces\UseMiddleware;
 
 class MultiTreeNode
 {
     /** @var array<string, MultiTreeNode> $childNodes */
     private array $childNodes = [];
 
-    /** array<Middleware> $middlewareList */
+    /** @var array<Middleware> $middlewareList */
     private array $middlewareList = [];
 
-    /** array<RequestMethod, Controller> $middlewareList */
+    /** @var array<RequestMethod, AbstractController> $middlewareList */
     private array $controllerList = [];
 
     /** @var array<string, MultiTreeNode> $dynamicPathNodeList */
     private array $dynamicPathNodeList = [];
-
     private Request $request;
 
-    public function registerSubGroup(string $path, Group $group): void
+    public function registerSubGroup(string $path, AbstractGroup $group): void
     {
         $path = $this->pathFormatter($path);
         if ($path === '') {
             $this->bindGroup($group);
             return;
         }
-        if (strpos($path, "/") > 0) {
-            $explodedPath = explode("/", $path);
-            $path = array_shift($explodedPath);
-            $restOfPath = implode("/", $explodedPath);
-        }
+
+        $explodedPath = explode("/", $path);
+        $path = array_shift($explodedPath);
+        $restOfPath = implode("/", $explodedPath);
+
         $newNode = $this->getNodeOrCreateNew($path);
-        if (isset($restOfPath)) {
+        if ($restOfPath !== '') {
             $newNode->registerSubGroup($restOfPath, $group);
         } else {
             $newNode->bindGroup($group);
         }
+
         $this->registerNode($path, $newNode);
     }
 
-    public function bindGroup(Group $group): void
+    public function bindGroup(AbstractGroup $group): void
     {
         if ($group instanceof UseMiddleware) {
             $this->middlewareList = array_merge($this->middlewareList, $group->middlewareList());
@@ -55,13 +57,13 @@ class MultiTreeNode
             $path = $this->pathFormatter($path);
             if (is_array($controllerOrGroup)) {
                 foreach ($controllerOrGroup as $controller) {
-                    if ($controller instanceof Controller) {
+                    if ($controller instanceof AbstractController) {
                         $this->registerController($path, $controller);
                     }
                 }
-            } elseif ($controllerOrGroup instanceof Controller) {
+            } elseif ($controllerOrGroup instanceof AbstractController) {
                 $this->registerController($path, $controllerOrGroup);
-            } elseif ($controllerOrGroup instanceof Group) {
+            } elseif ($controllerOrGroup instanceof AbstractGroup) {
                 $this->registerSubGroup($path, $controllerOrGroup);
             } else {
                 throw new InvalidControllerType($controllerOrGroup, $path);
@@ -69,7 +71,7 @@ class MultiTreeNode
         }
     }
 
-    public function registerController(string $path, Controller $controller): void
+    public function registerController(string $path, AbstractController $controller): void
     {
         $path = $this->pathFormatter($path);
         if ($path === '') {
@@ -91,7 +93,7 @@ class MultiTreeNode
         }
     }
 
-    public function bindController(Controller $controller): void
+    public function bindController(AbstractController $controller): void
     {
         $requestMethod = $controller->requestMethod()->value;
         $this->controllerList[$requestMethod] = $controller;
@@ -110,7 +112,7 @@ class MultiTreeNode
 
     public function getController(
         RequestMethod $requestMethod
-    ): Controller {
+    ): AbstractController {
         if (isset($this->controllerList[$requestMethod->value])) {
             return $this->controllerList[$requestMethod->value];
         }
@@ -121,7 +123,7 @@ class MultiTreeNode
         string $path,
         RequestMethod $requestMethod,
         bool $childMethod = false
-    ): Controller | false {
+    ): AbstractController | false {
         $path = $this->pathFormatter($path);
         $explodedPath = explode("/", $path);
 
